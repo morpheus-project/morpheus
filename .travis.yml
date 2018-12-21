@@ -15,4 +15,6 @@ install:
   - conda env create -f env.yaml
   - source activate morpheus
 script:
-  - pytest
+  - pytest --cov=morpheus
+after_success:
+  - codecov
