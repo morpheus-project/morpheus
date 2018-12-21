@@ -49,7 +49,7 @@ except FileNotFoundError:
 about = {}
 if not VERSION:
     with open(os.path.join(here, NAME, "__version__.py")) as f:
-        exec(f.read(), about)
+        exec(f.read(), about)  # pylint: disable=w0122
 else:
     about["__version__"] = VERSION
 

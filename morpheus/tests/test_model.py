@@ -21,3 +21,180 @@
 # ==============================================================================
 
 """Tests the model functions"""
+import collections
+
+import pytest
+import tensorflow as tf
+
+import morpheus.core.base_model as base_model
+import morpheus.core.unet as unet
+
+
+class TestAssistant:
+    """Makes things that the tests want."""
+
+    @staticmethod
+    def mock_dataset() -> collections.namedtuple:
+        """Makes a compatible mock dataset.
+
+        This snippet is borrowed from morpheus.core.model.Morpheus
+        """
+        MockDataset = collections.namedtuple("Dataset", ["num_labels"])
+        return MockDataset(5)
+
+    @staticmethod
+    def mock_hparams(
+        inference: bool, batch_norm: bool, drop_out: bool, num_contractions: int
+    ):
+        """Makes a simple model config for testing.
+
+        Args:
+            inference (bool): boolean flag for inference
+            batch_norm (bool): boolean flag for batch normalization in graph
+            drop_out (bool): boolean flag for drop out in graph
+            num_contractions (int): number of down/up sample pairs
+        """
+
+        num_filters = [1 for _ in range(num_contractions)]
+
+        hparams = tf.contrib.training.HParams(
+            inference=inference,
+            num_epochs=1,
+            batch_norm=batch_norm,
+            drop_out=drop_out,
+            down_filters=num_filters,
+            up_filters=num_filters,
+            learning_rate=0.1,
+            dropout_rate=0.5,
+            num_down_convs=1,
+            num_up_convs=1,
+            num_intermediate_filters=1,
+        )
+
+        return hparams
+
+    @staticmethod
+    def zero_tensor() -> tf.Tensor:
+        """Makes a zero filled tensor with shape [3, 3]"""
+
+        return tf.zeros([3, 3])
+
+    @staticmethod
+    def in_tensor(data_format: str) -> tf.Tensor:
+        """Makes a sample tensor input tensor for shape testing.
+
+        Args:
+            data_format (str): 'channels_first' or 'channels_last'
+
+        Returns:
+            A tensor with shape [100, 80, 80, 5] if 'channels_last' or
+            [100, 5, 80, 80] if 'channels_first'
+        """
+
+        shape = [100, 80, 80, 80]
+        if data_format == "channels_first":
+            shape[1] = 4
+        else:
+            shape[3] = 4
+
+        return tf.zeros(shape, dtype=tf.float32)
+
+
+class TestBaseModel:
+    """A class that tests the functions of morpheus.core.base_model.Model"""
+
+    @staticmethod
+    def test_model_fn_raises():
+        """Tests that the non overridden model_fn raises NotImplemented"""
+
+        model = base_model.Model(TestAssistant.mock_dataset())
+        with pytest.raises(NotImplementedError):
+            model.model_fn(TestAssistant.zero_tensor(), True)
+
+    @staticmethod
+    def test_build_graph_raises():
+        """Tests that the non overridden model_fn raises on a build_graph call.
+        """
+
+        model = base_model.Model(TestAssistant.mock_dataset())
+        with pytest.raises(NotImplementedError):
+            model.build_graph(TestAssistant.zero_tensor(), True)
+
+
+class TestUNet:
+    """A class that tests the functions of morpheus.core.unet.Model"""
+
+    @staticmethod
+    def test_upsample_shape_doubles():
+        inference, batch_norm, drop_out = True, True, True
+        num_contractions = 1
+        data_format = "channels_last"
+
+        dataset = TestAssistant.mock_dataset()
+        hparams = TestAssistant.mock_hparams(
+            inference, batch_norm, drop_out, num_contractions
+        )
+
+        x = TestAssistant.in_tensor(data_format)
+
+        expected_shape = x.shape.as_list()
+        expected_shape[1] *= 2
+        expected_shape[2] *= 2
+
+        model = unet.Model(hparams, dataset, data_format)
+
+        x = model.up_sample(x)
+
+        actual_shape = x.shape.as_list()
+
+        assert expected_shape == actual_shape
+
+    @staticmethod
+    def test_upsample_with_transpose_shape_doubles():
+        inference, batch_norm, drop_out = True, True, True
+        num_contractions = 1
+        data_format = "channels_first"
+
+        dataset = TestAssistant.mock_dataset()
+        hparams = TestAssistant.mock_hparams(
+            inference, batch_norm, drop_out, num_contractions
+        )
+
+        x = TestAssistant.in_tensor(data_format)
+
+        expected_shape = x.shape.as_list()
+        expected_shape[2] *= 2
+        expected_shape[3] *= 2
+
+        model = unet.Model(hparams, dataset, data_format)
+
+        x = model.up_sample(x)
+
+        actual_shape = x.shape.as_list()
+
+        assert expected_shape == actual_shape
+
+    @staticmethod
+    def test_downsample_shape_halves():
+        inference, batch_norm, drop_out = True, True, True
+        num_contractions = 1
+        data_format = "channels_last"
+
+        dataset = TestAssistant.mock_dataset()
+        hparams = TestAssistant.mock_hparams(
+            inference, batch_norm, drop_out, num_contractions
+        )
+
+        x = TestAssistant.in_tensor(data_format)
+
+        expected_shape = x.shape.as_list()
+        expected_shape[1] /= 2
+        expected_shape[2] /= 2
+
+        model = unet.Model(hparams, dataset, data_format)
+
+        x = model.down_sample(x)
+
+        actual_shape = x.shape.as_list()
+
+        assert expected_shape == actual_shape

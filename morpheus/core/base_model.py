@@ -60,9 +60,7 @@ class Model:
         self.data_format = data_format
         self._graph = None
 
-    def model_fn(
-        self, inputs: tf.Tensor, is_training: bool
-    ) -> FunctionType[tf.Tensor, bool]:
+    def model_fn(self, inputs: tf.Tensor, is_training: bool) -> FunctionType:
         """Function that defines model. Needs to be Overidden!
 
         Args:
@@ -105,6 +103,9 @@ class Model:
         Returns:
             (optimize, metrics): the result of self.optimizer and
                                  self.train_metrics respectively
+
+        Raises
+            NotImplementedError if Model.model_fn() is not overwritten
         """
         data, labels = self.dataset.train
         logits = self.build_graph(data, True)
@@ -119,6 +120,9 @@ class Model:
         Returns:
             (logits, metrics): the result of the self.build_graph and
                                self.test_metrics respectively
+
+        Raises
+            NotImplementedError if Model.model_fn() is not overwritten
         """
         inputs, labels = self.dataset.test
         logits = self.build_graph(inputs, False)

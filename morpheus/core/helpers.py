@@ -75,7 +75,7 @@ class TFLogger:
         Returns:
             None
         """
-        tf.logging.warn(TFLogger.LIGHTRED(msg))
+        tf.logging.warning(TFLogger.LIGHTRED(msg))
 
     @staticmethod
     def error(msg: str):
@@ -90,13 +90,13 @@ class TFLogger:
         tf.logging.error(TFLogger.RED(msg))
 
     @staticmethod
-    def tensor_shape(tensor: tf.Tensor, log_func=debug, format_str="[{}]::{}") -> None:
+    def tensor_shape(tensor: tf.Tensor, log_func=None, format_str="[{}]::{}") -> None:
         """Log the the shape of tensor 't'.
 
         Args:
             tensor (tf.Tensor): A tensorflow Tensor
             logging_func (func): logging function to to use, default
-                                tf_logger.default
+                                tf_logger.debug
             format_str (str): A string that will be passed will have .format called
                             on it and given two arguments in the following order:
                             - tensor_name
@@ -104,6 +104,9 @@ class TFLogger:
         Returns:
             None
         """
+        if log_func is None:
+            log_func = TFLogger.debug
+
         log_func(format_str.format(tensor.name, tensor.shape.as_list()))
 
 
@@ -117,7 +120,7 @@ class OptionalFunc:
     @staticmethod
     def placeholder(*args):
         """Placeholder function used as default in __init__"""
-        return args
+        return list(*args)
 
     def __init__(self, warn_msg: str, init_func: FunctionType = placeholder):
         """"""
@@ -149,7 +152,7 @@ class FitsHelper:
         array into memory. The method follows the direction given at:
         http://docs.astropy.org/en/stable/generated/examples/io/skip_create-large-fits.html
 
-        
+
         Args:
             file_name (str): the complete path to the file to be created.
             data_shape (tuple): a tuple describe the shape of the file to be
@@ -160,12 +163,30 @@ class FitsHelper:
             ValueError if dtype is not one of:
                 - np.unit8
                 - np.int16
+                - np.int32
                 - np.float32
                 - np.float64
 
-        
+
         TODO: Figure out why this throws warning about size occasionally
+              when files that are created by it are opened
         """
+        bytes_per_value = 0
+
+        if dtype == np.uint8:
+            bytes_per_value = 1
+        elif dtype == np.int16:
+            bytes_per_value = 2
+        elif dtype == np.int32:
+            bytes_per_value = 4
+        elif dtype == np.float32:
+            bytes_per_value = 4
+        elif dtype == np.float64:
+            bytes_per_value = 8
+
+        if bytes_per_value == 0:
+            raise ValueError("Invalid dtype")
+
         stub_size = [100, 100]
         if len(data_shape) == 3:
             stub_size.append(5)
@@ -182,20 +203,6 @@ class FitsHelper:
             header["NAXIS3"] = data_shape[2]
 
         header.tofile(file_name)
-
-        bytes_per_value = 0
-
-        if dtype == np.uint8:
-            bytes_per_value = 1
-        elif dtype == np.int16:
-            bytes_per_value = 2
-        elif dtype == np.float32:
-            bytes_per_value = 4
-        elif dtype == np.float64:
-            bytes_per_value = 8
-
-        if bytes_per_value == 0:
-            raise ValueError("Invalid dtype")
 
         with open(file_name, "rb+") as f:
             header_size = len(header.tostring())
