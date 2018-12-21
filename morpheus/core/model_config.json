@@ -1,0 +1,23 @@
+{
+    "inference": true,
+    "comet_id": "7ec7b850a95d4304b61b2654f846e4b1",
+    "num_epochs": 500,
+    "batch_norm": true,
+    "batch_size": 200,
+    "down_filters": [
+      8,
+      16,
+      32
+    ],
+    "dropout": true,
+    "dropout_rate": 0.5,
+    "learning_rate": 0.0009929302254037737,
+    "num_down_convs": 4,
+    "num_intermediate_filters": 16,
+    "num_up_convs": 2,
+    "up_filters": [
+      8,
+      16,
+      32
+    ]
+}
