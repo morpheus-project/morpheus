@@ -5,7 +5,6 @@ Morpheus
     :target: https://travis-ci.com/morpheus-project/morpheus
 
 
-
 .. image:: https://codecov.io/gh/morpheus-project/morpheus/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/morpheus-project/morpheus
+    :target: https://codecov.io/gh/morpheus-project/morpheus
 
