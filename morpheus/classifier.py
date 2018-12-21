@@ -21,3 +21,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 """A convenient interface for interacting with Morpheus"""
+
+
+class Classifier:
+    """Helper class to use Morpheus.
+
+    """
+
+    __graph = None
+
+    @staticmethod
+    def classify_files(
+        h=None,
+        j=None,
+        v=None,
+        z=None,
+        out_dir=".",
+        batch_size=1000,
+        out_type="both",
+        paralell_gpus=False,
+    ):
+        None
+
+    @staticmethod
+    def classify_arrays(
+        h=None, j=None, v=None, z=None, out_dir=".", batch_size=1000, out_type="both"
+    ):
+        None

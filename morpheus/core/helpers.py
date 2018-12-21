@@ -23,9 +23,11 @@
 
 from types import FunctionType
 
+import numpy as np
 import tensorflow as tf
 
 from colorama import init, Fore
+from astropy.io import fits
 
 init(autoreset=True)
 
@@ -134,3 +136,70 @@ class OptionalFunc:
     def __set__(self, obj, value) -> None:
         self._is_default = False
         self._func = value
+
+
+class FitsHelper:
+    """A class that handles basic FITS file functions."""
+
+    @staticmethod
+    def create_file(file_name: str, data_shape: tuple, dtype) -> None:
+        """Creates a fits file without loading it into memory.
+
+        This is a helper method to create large FITS files without loading an
+        array into memory. The method follows the direction given at:
+        http://docs.astropy.org/en/stable/generated/examples/io/skip_create-large-fits.html
+
+        
+        Args:
+            file_name (str): the complete path to the file to be created.
+            data_shape (tuple): a tuple describe the shape of the file to be
+                                created
+            dtype (numpy datatype): the numpy datatype used in the array
+
+        Raises:
+            ValueError if dtype is not one of:
+                - np.unit8
+                - np.int16
+                - np.float32
+                - np.float64
+
+        
+        TODO: Figure out why this throws warning about size occasionally
+        """
+        stub_size = [100, 100]
+        if len(data_shape) == 3:
+            stub_size.append(5)
+        stub = np.zeros(stub_size, dtype=dtype)
+
+        hdu = fits.PrimaryHDU(data=stub)
+        header = hdu.header
+        while len(header) < (36 * 4 - 1):
+            header.append()
+
+        header["NAXIS1"] = data_shape[1]
+        header["NAXIS2"] = data_shape[0]
+        if len(data_shape) == 3:
+            header["NAXIS3"] = data_shape[2]
+
+        header.tofile(file_name)
+
+        bytes_per_value = 0
+
+        if dtype == np.uint8:
+            bytes_per_value = 1
+        elif dtype == np.int16:
+            bytes_per_value = 2
+        elif dtype == np.float32:
+            bytes_per_value = 4
+        elif dtype == np.float64:
+            bytes_per_value = 8
+
+        if bytes_per_value == 0:
+            raise ValueError("Invalid dtype")
+
+        with open(file_name, "rb+") as f:
+            header_size = len(header.tostring())
+            data_size = (np.prod(data_shape) * bytes_per_value) - 1
+
+            f.seek(header_size + data_size)
+            f.write(b"\0")
