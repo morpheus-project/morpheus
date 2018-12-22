@@ -208,3 +208,25 @@ class TestFitsHelper:
         dummy_shape = tuple(reversed(dummy_shape))
         assert dummy_shape == retrieved.shape
         assert np.issubdtype(dummy_dtype, retrieved.dtype)
+
+    @staticmethod
+    def test_get_files():
+        """Tests the get_files() method"""
+        local = os.path.dirname(os.path.abspath(__file__))
+
+        dummy_file1 = os.path.join(local, "dummy1.fits")
+        dummy_file2 = os.path.join(local, "dummy2.fits")
+
+        arr1 = np.zeros([100, 100], dtype=np.float32)
+        arr2 = np.ones([100, 100], dtype=np.float32)
+
+        for f, a in zip([dummy_file1, dummy_file2], [arr1, arr2]):
+            fits.PrimaryHDU(data=a).writeto(f)
+
+        arrs = FitsHelper.get_files([dummy_file1, dummy_file2])
+
+        os.remove(dummy_file1)
+        os.remove(dummy_file2)
+
+        assert np.array_equal(arr1, arrs[0])
+        assert np.array_equal(arr2, arrs[1])

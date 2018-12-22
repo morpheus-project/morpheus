@@ -24,11 +24,12 @@
 
 
 class Classifier:
-    """Helper class to use Morpheus.
+    """Primary interface for the use of Morpheus.
 
     """
 
     __graph = None
+    __session = None
 
     @staticmethod
     def classify_files():

@@ -22,6 +22,7 @@
 """Helper classes used in Morpheus."""
 
 from types import FunctionType
+from typing import List
 
 import numpy as np
 import tensorflow as tf
@@ -210,3 +211,28 @@ class FitsHelper:
 
             f.seek(header_size + data_size)
             f.write(b"\0")
+
+    @staticmethod
+    def get_files(file_names: List[str], mode: str = "readonly") -> List[np.ndarray]:
+        """Gets the HDULS and data handles for all the files in file_names.
+
+        This is a convience function to opening multiple FITS files using
+        memmap.
+
+        Args:
+            file_names (List[str]): a list of file names including paths to FITS
+                                    files
+            mode (str): the mode to pass to fits.open
+
+        Returns:
+            Tuple of a list numpy arrays that are the mmapped data handles for
+            each of the FITS files
+        """
+        arrays = []
+
+        for f in file_names:
+            hdul = fits.open(f, mode=mode, memmap=True)
+            arrays.append(hdul[0].data)  # Astropy problem pylint: disable=E1101
+            hdul.close()
+
+        return arrays
