@@ -223,10 +223,68 @@ class TestFitsHelper:
         for f, a in zip([dummy_file1, dummy_file2], [arr1, arr2]):
             fits.PrimaryHDU(data=a).writeto(f)
 
-        arrs = FitsHelper.get_files([dummy_file1, dummy_file2])
+        hduls, arrs = FitsHelper.get_files([dummy_file1, dummy_file2])
 
         os.remove(dummy_file1)
         os.remove(dummy_file2)
 
         assert np.array_equal(arr1, arrs[0])
         assert np.array_equal(arr2, arrs[1])
+
+    @staticmethod
+    def test_create_mean_var_files():
+        """Tests create_mean_var_files method."""
+        morphs = [
+            'spheroid',
+            'disk',
+            'irregular',
+            'point_source',
+            'background'
+        ]
+        
+        local = os.path.dirname(os.path.abspath(__file__))
+
+        shape = (200, 200)
+        expected_file_names = []
+
+        for m in morphs:
+            for t in ['mean', 'var']:
+                expected_file_names.append(os.path.join(local, f'{m}_{t}.fits'))
+
+        FitsHelper.create_mean_var_files(shape, local)
+
+        for f in expected_file_names:
+            arr = fits.getdata(f)
+            assert arr.shape==shape
+            assert np.issubdtype(np.float32, arr.dtype)
+            os.remove(f)
+
+    @staticmethod
+    def test_create_rank_vote_files():
+        """Tests create_rank_vote_files method."""
+        morphs = [
+            'spheroid',
+            'disk',
+            'irregular',
+            'point_source',
+            'background'
+        ]
+        
+        local = os.path.dirname(os.path.abspath(__file__))
+
+        shape = (200, 200)
+        expected_file_names = []
+
+        for m in morphs:
+            expected_file_names.append(os.path.join(local, f'{m}.fits'))
+
+        FitsHelper.create_rank_vote_files(shape, local)
+
+        for f in expected_file_names:
+            arr = fits.getdata(f)
+            assert arr.shape==shape
+            assert np.issubdtype(np.float32, arr.dtype)
+            os.remove(f)
+
+
+

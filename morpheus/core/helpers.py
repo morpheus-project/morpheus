@@ -21,6 +21,8 @@
 # ==============================================================================
 """Helper classes used in Morpheus."""
 
+import os
+
 from types import FunctionType
 from typing import List
 
@@ -145,6 +147,15 @@ class OptionalFunc:
 class FitsHelper:
     """A class that handles basic FITS file functions."""
 
+    # TODO: Find a better place for this
+    MORPHOLOGIES = [
+        'spheroid',
+        'disk',
+        'irregular',
+        'point_source',
+        'background'
+    ]
+
     @staticmethod
     def create_file(file_name: str, data_shape: tuple, dtype) -> None:
         """Creates a fits file without loading it into memory.
@@ -213,7 +224,7 @@ class FitsHelper:
             f.write(b"\0")
 
     @staticmethod
-    def get_files(file_names: List[str], mode: str = "readonly") -> List[np.ndarray]:
+    def get_files(file_names: List[str], mode: str = "readonly") -> (List[fits.HDUList], List[np.ndarray]):
         """Gets the HDULS and data handles for all the files in file_names.
 
         This is a convience function to opening multiple FITS files using
@@ -226,13 +237,73 @@ class FitsHelper:
 
         Returns:
             Tuple of a list numpy arrays that are the mmapped data handles for
-            each of the FITS files
+            each of the FITS files and the HDULs that go along with them
         """
         arrays = []
+        hduls = []
 
         for f in file_names:
             hdul = fits.open(f, mode=mode, memmap=True)
             arrays.append(hdul[0].data)  # Astropy problem pylint: disable=E1101
-            hdul.close()
+            hduls.append(hdul)
 
-        return arrays
+        return hduls, arrays
+
+    @staticmethod
+    def create_mean_var_files(shape:List[int], out_dir:str) -> (List[fits.HDUList], List[np.ndarray]):
+        """Creates the output fits files for the mean/variance morpheus output.
+
+            Args:
+                shape (List[int]): The shape to use when making the FITS files
+                out_dir (str): the directory to place the files in. Will make it
+                               if it doesn't already exist.
+
+            Returns:
+                List[fits.HDUList]: for the created files
+                Dict(str, np.ndarray): a dictionary where the key is the data 
+                                       descriptor and the value is the memmapped
+                                       data numpy array
+        """
+
+        data_keys = []
+        file_names = []
+        for morph in FitsHelper.MORPHOLOGIES:
+            for t in ['mean', 'var']:
+                f = os.path.join(out_dir, f'{morph}_{t}.fits')
+                file_names.append(f)
+                data_keys.append(f'{morph}_{t}')
+
+                FitsHelper.create_file(f, shape, np.float32)
+    
+        hduls, arrays = FitsHelper.get_files(file_names, mode='update')    
+
+        return hduls, {k:v for k, v in zip(data_keys, arrays)}
+
+    @staticmethod
+    def create_rank_vote_files(shape:List[int], out_dir:str) -> (List[fits.HDUList], List[np.ndarray]):
+        """Creates the output fits files for the rank vote morpheus output.
+
+            Args:
+                shape (List[int]): The shape to use when making the FITS files
+                out_dir (str): the directory to place the files in. Will make it
+                               if it doesn't already exist.
+
+            Returns:
+                List[fits.HDUList]: for the created files
+                Dict(str, np.ndarray): a dictionary where the key is the data 
+                                       descriptor and the value is the memmapped
+                                       data numpy array
+        """
+
+        data_keys = []
+        file_names = []
+        for morph in FitsHelper.MORPHOLOGIES:
+            f = os.path.join(out_dir, f'{morph}.fits')
+            file_names.append(f)
+            data_keys.append(morph)
+
+            FitsHelper.create_file(f, shape, np.float32)
+    
+        hduls, arrays = FitsHelper.get_files(file_names, mode='update')    
+
+        return hduls, {k:v for k, v in zip(data_keys, arrays)}
