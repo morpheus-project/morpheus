@@ -25,6 +25,8 @@ import os
 
 from types import FunctionType
 from typing import List
+from typing import Iterable
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -331,3 +333,23 @@ class FitsHelper:
         hduls, arrays = FitsHelper.get_files([n_path], mode="update")
 
         return hduls, {"n": arrays[0]}
+
+
+class LabelHelper:
+    """Class to help with label updates"""
+
+    @staticmethod
+    def index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
+        """Creates a generator that returns indicies to iterate over a 2d array.
+        
+        Args:
+            dim0 (int): The upper limit to iterate upto for the first dimension
+            dim1 (int): The upper limit to iterate upto for the second dimension
+        
+        Returns:
+            A generator that yields indicies to iterate over a 2d array with 
+            shape [dim0, dim1]
+        """
+        for y in range(dim0):
+            for x in range(dim1):
+                yield (y, x)

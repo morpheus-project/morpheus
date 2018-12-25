@@ -31,6 +31,7 @@ from astropy.io import fits
 from morpheus.core.helpers import FitsHelper
 from morpheus.core.helpers import TFLogger
 from morpheus.core.helpers import OptionalFunc
+from morpheus.core.helpers import LabelHelper
 
 
 class TestTFLogger:
@@ -290,3 +291,21 @@ class TestFitsHelper:
         assert np.issubdtype(np.int16, arr.dtype)
 
         os.remove(expected_file_name)
+
+
+class TestLabelHelper:
+    """This tests the LabelHelper class."""
+
+    @staticmethod
+    def test_index_generator():
+        """Test the index_generator method."""
+        shape = (100, 100)
+
+        arr = np.zeros(shape, dtype=np.bool)
+
+        index_gen = LabelHelper.index_generator(*shape)
+
+        for i, j in index_gen:
+            arr[i, j] = True
+
+        assert arr.all()
