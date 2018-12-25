@@ -223,7 +223,7 @@ class TestFitsHelper:
         for f, a in zip([dummy_file1, dummy_file2], [arr1, arr2]):
             fits.PrimaryHDU(data=a).writeto(f)
 
-        hduls, arrs = FitsHelper.get_files([dummy_file1, dummy_file2])
+        _, arrs = FitsHelper.get_files([dummy_file1, dummy_file2])
 
         os.remove(dummy_file1)
         os.remove(dummy_file2)
@@ -234,57 +234,59 @@ class TestFitsHelper:
     @staticmethod
     def test_create_mean_var_files():
         """Tests create_mean_var_files method."""
-        morphs = [
-            'spheroid',
-            'disk',
-            'irregular',
-            'point_source',
-            'background'
-        ]
-        
+        morphs = ["spheroid", "disk", "irregular", "point_source", "background"]
+
         local = os.path.dirname(os.path.abspath(__file__))
 
         shape = (200, 200)
         expected_file_names = []
 
         for m in morphs:
-            for t in ['mean', 'var']:
-                expected_file_names.append(os.path.join(local, f'{m}_{t}.fits'))
+            for t in ["mean", "var"]:
+                expected_file_names.append(os.path.join(local, f"{m}_{t}.fits"))
 
         FitsHelper.create_mean_var_files(shape, local)
 
         for f in expected_file_names:
             arr = fits.getdata(f)
-            assert arr.shape==shape
+            assert arr.shape == shape
             assert np.issubdtype(np.float32, arr.dtype)
             os.remove(f)
 
     @staticmethod
     def test_create_rank_vote_files():
         """Tests create_rank_vote_files method."""
-        morphs = [
-            'spheroid',
-            'disk',
-            'irregular',
-            'point_source',
-            'background'
-        ]
-        
+        morphs = ["spheroid", "disk", "irregular", "point_source", "background"]
+
         local = os.path.dirname(os.path.abspath(__file__))
 
         shape = (200, 200)
         expected_file_names = []
 
         for m in morphs:
-            expected_file_names.append(os.path.join(local, f'{m}.fits'))
+            expected_file_names.append(os.path.join(local, f"{m}.fits"))
 
         FitsHelper.create_rank_vote_files(shape, local)
 
         for f in expected_file_names:
             arr = fits.getdata(f)
-            assert arr.shape==shape
+            assert arr.shape == shape
             assert np.issubdtype(np.float32, arr.dtype)
             os.remove(f)
 
+    @staticmethod
+    def test_create_n_file():
+        """Test create_n_file method."""
 
+        local = os.path.dirname(os.path.abspath(__file__))
 
+        shape = (200, 200)
+        expected_file_name = os.path.join(local, "n.fits")
+
+        FitsHelper.create_n_file(shape, local)
+
+        arr = fits.getdata(expected_file_name)
+        assert arr.shape == shape
+        assert np.issubdtype(np.int16, arr.dtype)
+
+        os.remove(expected_file_name)
