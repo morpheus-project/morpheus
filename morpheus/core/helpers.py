@@ -388,3 +388,25 @@ class LabelHelper:
             final_map.append((5, 5))
 
         return final_map
+
+    # http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf, eq. 4
+    @staticmethod
+    def iterative_mean(
+        n: np.ndarray, curr_mean: np.ndarray, x_n: np.ndarray, update_mask: np.ndarray
+    ):
+        """Calculates the mean of collection in an online fashion.
+
+        Args:
+            n (np.ndarray): a 2d array containg the number of terms in mean so 
+                            far,
+            prev_mean (np.ndarray): the current calculated mean. 
+            x_n (np.ndarray): the new values to add to the mean
+            update_mask (np.ndarray): a 2d boolean array indicating which 
+                                      indicies in the array should be updated.
+
+        Returns:
+            An array with the same shape as the curr_mean with the newly 
+            calculated mean values.
+        """
+        n[n == 0] = 1
+        return curr_mean + ((x_n - curr_mean) / n * update_mask)

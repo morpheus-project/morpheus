@@ -328,3 +328,19 @@ class TestLabelHelper:
         all_same = np.equal(expected_array, arr)
 
         assert all_same.all()
+
+    @staticmethod
+    def test_iterative_mean():
+        """Test the iterative_mean method."""
+        shape = (10, 10)
+        terms = [np.ones(shape) * i for i in range(9)]
+        mean = np.zeros(shape)
+
+        for i in range(9):
+            ns = np.ones(shape) * (i + 1)
+            mean = LabelHelper.iterative_mean(ns, mean, terms[i], np.ones_like(mean))
+
+        expected_mean = np.mean(terms, axis=0)
+        all_same = np.equal(expected_mean, mean)
+
+        assert all_same.all()
