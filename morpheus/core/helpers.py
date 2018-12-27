@@ -338,6 +338,9 @@ class FitsHelper:
 class LabelHelper:
     """Class to help with label updates"""
 
+    UPDATE_MASK = np.pad(np.ones([30, 30]), 5, mode="constant").astype(np.int16)
+    UPDATE_MASK_N = np.ones([40, 40], dtype=np.int16)
+
     @staticmethod
     def index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
         """Creates a generator that returns indicies to iterate over a 2d array.
@@ -353,3 +356,35 @@ class LabelHelper:
         for y in range(dim0):
             for x in range(dim1):
                 yield (y, x)
+
+    @staticmethod
+    def get_final_map(shape: List[int], y: int, x: int):
+        """Creates a pixel mapping that flags pixels that won't be updated again.
+        
+        Args:
+            shape (List[int]): the shape of the array that x and y are indexing
+            y (int): the current y index
+            x (int): the current x index
+
+        Returns:
+            A list of relative indicies that won't be updated again.
+        """
+        final_map = []
+
+        end_y = y == (shape[0] - LabelHelper.UPDATE_MASK_N.shape[0])
+        end_x = x == (shape[1] - LabelHelper.UPDATE_MASK_N.shape[1])
+
+        if end_y and end_x:
+            for _y in range(5, 35):
+                for _x in range(5, 35):
+                    final_map.append((_y, _x))
+        else:
+            if end_x:
+                final_map.extend([(5, _x) for _x in range(5, 35)])
+            if end_y:
+                final_map.extend([(_y, 5) for _y in range(5, 35)])
+
+        if not final_map:
+            final_map.append((5, 5))
+
+        return final_map

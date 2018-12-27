@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ==============================================================================
-
 """Tests the helper functions"""
 
 import os
@@ -309,3 +308,23 @@ class TestLabelHelper:
             arr[i, j] = True
 
         assert arr.all()
+
+    @staticmethod
+    def test_get_final_map_complete():
+        """Test the get_final_map method on complete array."""
+
+        shape = (100, 100)
+        arr = np.zeros(shape, dtype=np.bool)
+
+        for i in range(shape[0] - LabelHelper.UPDATE_MASK_N.shape[0] + 1):
+            for j in range(shape[1] - LabelHelper.UPDATE_MASK_N.shape[1] + 1):
+                final_map = LabelHelper.get_final_map(shape, i, j)
+                for (y, x) in final_map:
+                    arr[i + y, j + x] = True
+
+        expected_array = np.zeros(shape, dtype=np.bool)
+        expected_array[5:-5, 5:-5] = True
+
+        all_same = np.equal(expected_array, arr)
+
+        assert all_same.all()
