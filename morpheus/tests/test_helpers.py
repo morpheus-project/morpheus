@@ -393,3 +393,21 @@ class TestLabelHelper:
         all_same = np.equal(expected_var, var)
 
         assert all_same.all()
+
+    @staticmethod
+    def test_iterative_rank_vote():
+        """Test the iterative_rank_vote method."""
+        shape = (5, 10, 10)
+        prev_votes = np.zeros(shape)
+
+        ranks = np.ones((shape[1], shape[2]), dtype=int)
+
+        update_mask = ranks.copy()
+        votes = LabelHelper.iterative_rank_vote(ranks, prev_votes, update_mask)
+
+        expected_votes = prev_votes.copy()
+        expected_votes[1, :, :] = 1
+
+        all_same = np.equal(expected_votes, votes)
+
+        assert all_same.all()

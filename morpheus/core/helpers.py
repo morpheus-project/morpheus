@@ -471,3 +471,31 @@ class LabelHelper:
             final_n[y, x] = n[y, x]
 
         return curr_sn / final_n
+
+    @staticmethod
+    def iterative_rank_vote(
+        x_n: np.ndarray, prev_count: np.ndarray, update_mask: np.ndarray
+    ):
+        """Calculates the updated values for the rank vote labels for a one class.
+
+        Args:
+            x_n (np.ndarray): the current rank vote values for the class being 
+                              updated
+            prev_count (np.ndarray): the array containing the running totals,
+                                     should be shaped as [labels, height, width]
+            update_mask (np.ndarray): a boolean array indicating which values to 
+                                      update
+
+        Returns:    
+            A numpy array containing the updated count values
+        """
+        update = np.zeros_like(prev_count)
+
+        for i in range(update.shape[1]):
+            for j in range(update.shape[2]):
+                if update_mask[i, j]:
+                    update[x_n[i, j], i, j] = 1
+
+        count = prev_count + update
+
+        return count
