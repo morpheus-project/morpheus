@@ -344,3 +344,52 @@ class TestLabelHelper:
         all_same = np.equal(expected_mean, mean)
 
         assert all_same.all()
+
+    @staticmethod
+    def test_iterative_variance_no_final():
+        """Test the iterative variance before finalization."""
+        shape = (10, 10)
+        terms = [np.ones(shape) * i for i in range(9)]
+        s_n = np.zeros(shape)
+        update_mask = np.ones((shape))
+        
+
+        for i in range(9):
+            curr_mean = np.mean(terms[:i+1], axis=0)
+            if i>0:
+                prev_mean = np.mean(terms[:i], axis=0)    
+            else:
+                prev_mean = curr_mean.copy()
+            
+
+            s_n = LabelHelper.iterative_variance(s_n, terms[i], prev_mean, curr_mean, update_mask)
+        
+        n = np.ones(shape) * 9
+        expected_sn = np.var(terms, axis=0) * n
+
+        all_same = np.equal(expected_sn, s_n)
+
+        assert all_same.all()
+
+    @staticmethod
+    def test_iterative_variance_with_final():
+        """Test the iterative variance with finalization."""
+        shape = (10, 10)
+        terms = [np.ones(shape) * i for i in range(9)]
+        
+        expected_var = np.var(terms, axis=0)
+
+        n = np.ones(shape) * 9
+        sn = expected_var * n
+
+        final_map = []
+
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                final_map.append((i, j))
+
+        var = LabelHelper.finalize_variance(n, sn, final_map)
+
+        all_same = np.equal(expected_var, var)
+
+        assert all_same.all()

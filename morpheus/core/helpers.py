@@ -389,12 +389,14 @@ class LabelHelper:
 
         return final_map
 
-    # http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf, eq. 4
     @staticmethod
     def iterative_mean(
         n: np.ndarray, curr_mean: np.ndarray, x_n: np.ndarray, update_mask: np.ndarray
     ):
         """Calculates the mean of collection in an online fashion.
+
+        The values are calculated using the following equation:
+        http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf, eq. 4
 
         Args:
             n (np.ndarray): a 2d array containg the number of terms in mean so 
@@ -410,3 +412,62 @@ class LabelHelper:
         """
         n[n == 0] = 1
         return curr_mean + ((x_n - curr_mean) / n * update_mask)
+
+    #
+    @staticmethod
+    def iterative_variance(
+        prev_sn: np.ndarray,
+        x_n: np.ndarray,
+        prev_mean: np.ndarray,
+        curr_mean: np.ndarray,
+        update_mask: np.ndarray,
+    ):
+        """The first of two methods used to calculate the variance online.
+
+        This method specifically calculates the $S_n$ value as indicated in 
+        equation 24 from:
+
+        http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
+
+        Args:
+            prev_sn (np.ndarray): the $S_n$ value from the previous step
+            x_n (np.ndarray): the current incoming values
+            prev_mean (np.ndarray): the mean that was previously calculated
+            curr_mean (np.ndarray): the mean, including the current values
+            update_mask (np.ndarray): a boolean mask indicating which values to
+                                      update
+
+        Returns:
+            An np.ndarray containg the current value for $S_n$
+
+        
+        """
+        return prev_sn + ((x_n - prev_mean) * (x_n - curr_mean) * update_mask)
+
+    @staticmethod
+    def finalize_variance(
+        n: np.ndarray, curr_sn: np.ndarray, final_map: List[Tuple[int, int]]
+    ):
+        """The second of two methods used to calculate the variance online.
+
+        This method calcaulates the final variance value using equation 25 from
+
+        http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf 
+
+        but without performing the square root.
+
+        Args:
+            n (np.ndarray): the current number of values included in the calculation
+            curr_sn (np.ndarray): the current $S_n$ values 
+            final_map List[(y, x)]: a list of indicies to calculate the final
+                                    variance for
+
+        Returns:
+            A np.ndarray with the current $S_n$ values and variance values for
+            all indicies in final_map
+        """
+        final_n = np.ones_like(n)
+        for y, x in final_map:
+            final_n[y, x] = n[y, x]
+
+        return curr_sn / final_n
