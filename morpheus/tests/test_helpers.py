@@ -352,18 +352,18 @@ class TestLabelHelper:
         terms = [np.ones(shape) * i for i in range(9)]
         s_n = np.zeros(shape)
         update_mask = np.ones((shape))
-        
 
         for i in range(9):
-            curr_mean = np.mean(terms[:i+1], axis=0)
-            if i>0:
-                prev_mean = np.mean(terms[:i], axis=0)    
+            curr_mean = np.mean(terms[: i + 1], axis=0)
+            if i > 0:
+                prev_mean = np.mean(terms[:i], axis=0)
             else:
                 prev_mean = curr_mean.copy()
-            
 
-            s_n = LabelHelper.iterative_variance(s_n, terms[i], prev_mean, curr_mean, update_mask)
-        
+            s_n = LabelHelper.iterative_variance(
+                s_n, terms[i], prev_mean, curr_mean, update_mask
+            )
+
         n = np.ones(shape) * 9
         expected_sn = np.var(terms, axis=0) * n
 
@@ -376,7 +376,7 @@ class TestLabelHelper:
         """Test the iterative variance with finalization."""
         shape = (10, 10)
         terms = [np.ones(shape) * i for i in range(9)]
-        
+
         expected_var = np.var(terms, axis=0)
 
         n = np.ones(shape) * 9
