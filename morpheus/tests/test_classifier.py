@@ -19,40 +19,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ==============================================================================
+"""Tests morpheus.classifier module."""
 
-"""An interface for interacting with Morpheus"""
+import pytest
 
-from typing import List
+from morpheus.classifier import Classifier
 
-import numpy as np
-
-class Classifier:
-    """Primary interface for the use of Morpheus.
-
-    """
+class TestClassifier:
+    """Tests morpheus.classifier.Classifier"""
 
     @staticmethod
-    def _variables_not_none(names:List[str], values:List[np.ndarray]) -> None:
-        """Verifies that all variables are not None.
+    def test_variables_not_none():
+        """Tests Classifier._variables_not_none."""
 
-        Args:
-            names (List[str]): list of names of variables in the same order as 
-                               `values`
-            names (List[np.ndarray]): list of numpy arrays that should not be
-                                      None
+        names = ['a', 'b', 'c']
+        values = [1, 2, 3]
 
-        Returns:
-            None
+        Classifier._variables_not_none(names, values)
 
-        Raises:
-            ValueError if a variable is None
+    @staticmethod
+    def test_variables_not_none_throws():
+        """Tests Classifier._variables_not_none, throws ValueError."""
 
-        """
+        names = ['a', 'b', 'c']
+        values = [1, 2, None]
 
-        nones = []
-        for name, value in zip(names, values):
-            if value is None:
-                nones.append(name)
-
-        if nones:
-            raise ValueError('{} should not be None'.format(nones))
+        with pytest.raises(ValueError):
+            Classifier._variables_not_none(names, values)
