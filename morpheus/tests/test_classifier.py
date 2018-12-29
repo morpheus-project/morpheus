@@ -22,27 +22,49 @@
 """Tests morpheus.classifier module."""
 
 import pytest
+import numpy as np
 
 from morpheus.classifier import Classifier
+
 
 class TestClassifier:
     """Tests morpheus.classifier.Classifier"""
 
     @staticmethod
     def test_variables_not_none():
-        """Tests Classifier._variables_not_none."""
+        """Tests _variables_not_none."""
 
-        names = ['a', 'b', 'c']
+        names = ["a", "b", "c"]
         values = [1, 2, 3]
 
         Classifier._variables_not_none(names, values)
 
     @staticmethod
     def test_variables_not_none_throws():
-        """Tests Classifier._variables_not_none, throws ValueError."""
+        """Tests _variables_not_none, throws ValueError."""
 
-        names = ['a', 'b', 'c']
+        names = ["a", "b", "c"]
         values = [1, 2, None]
 
         with pytest.raises(ValueError):
             Classifier._variables_not_none(names, values)
+
+    @staticmethod
+    def test_arrays_same_size():
+        """Tests _arrays_same_size."""
+
+        shape = (10, 10)
+        arrs = [np.zeros(shape) for _ in range(3)]
+
+        Classifier._arrays_same_size(arrs)
+
+    @staticmethod
+    def test_arrays_same_size_throws():
+        """Tests _arrays_same_size, throws ValueError."""
+
+        shape = (10, 10)
+        arrs = [np.zeros(shape) for _ in range(3)]
+        arrs.append(np.zeros((20, 20)))
+
+        with pytest.raises(ValueError):
+            Classifier._arrays_same_size(arrs)

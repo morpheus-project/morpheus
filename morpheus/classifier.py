@@ -26,13 +26,37 @@ from typing import List
 
 import numpy as np
 
+
 class Classifier:
     """Primary interface for the use of Morpheus.
 
     """
 
     @staticmethod
-    def _variables_not_none(names:List[str], values:List[np.ndarray]) -> None:
+    def _arrays_same_size(arrays: List[np.ndarray]) -> None:
+        """Verifies that all arrays are the same shape.
+
+        Args:
+            arrays (List[np.ndarray]): List of arrays that should have the same
+                                       shape.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError if arrays are not the same shape
+        """
+
+        arr_shapes = [a.shape for a in arrays]
+
+        arr_comp = arr_shapes[0]
+        arr_to_comp = arr_shapes[1:]
+
+        if not np.array_equiv(arr_comp, arr_to_comp):
+            raise ValueError(f"All shapes not the same: {arr_shapes}.")
+
+    @staticmethod
+    def _variables_not_none(names: List[str], values: List[np.ndarray]) -> None:
         """Verifies that all variables are not None.
 
         Args:
@@ -55,4 +79,4 @@ class Classifier:
                 nones.append(name)
 
         if nones:
-            raise ValueError('{} should not be None'.format(nones))
+            raise ValueError("{} should not be None".format(nones))

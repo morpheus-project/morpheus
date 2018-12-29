@@ -336,7 +336,16 @@ class FitsHelper:
 
 
 class LabelHelper:
-    """Class to help with label updates"""
+    """Class to help with label updates.
+    
+    Class Variables:
+    UPDATE_MASK (np.ndarray): the (40, 40) integer array that indicates which
+                              parts of the output of the model to include in the
+                              calculations. default: innermost (30,30)
+    UPDATE_MASK_N (np.ndarray): the (40, 40) integer array that indicates which
+                                parts of the count 'n' to udpate. default:
+                                all (40, 40)
+    """
 
     UPDATE_MASK = np.pad(np.ones([30, 30]), 5, mode="constant").astype(np.int16)
     UPDATE_MASK_N = np.ones([40, 40], dtype=np.int16)
