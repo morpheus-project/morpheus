@@ -33,6 +33,24 @@ class Classifier:
     """
 
     @staticmethod
+    def _standardize_img(img: np.ndarray) -> np.ndarray:
+        """Standardizes an input img to mean 0 and unit variance.
+
+        Uses the formula described in:
+
+        https://www.tensorflow.org/api_docs/python/tf/image/per_image_standardization
+
+        Args:
+            img (np.ndarray): the input array to standardize
+
+        Returns:
+            The standardized input
+        """
+        num = img - img.mean()
+        denom = max(img.std(), 1 / np.sqrt(np.prod(img.shape)))
+        return num / denom
+
+    @staticmethod
     def _arrays_same_size(arrays: List[np.ndarray]) -> None:
         """Verifies that all arrays are the same shape.
 

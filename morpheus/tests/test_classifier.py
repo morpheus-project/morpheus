@@ -32,7 +32,7 @@ class TestClassifier:
 
     @staticmethod
     def test_variables_not_none():
-        """Tests _variables_not_none."""
+        """Tests _variables_not_none method."""
 
         names = ["a", "b", "c"]
         values = [1, 2, 3]
@@ -51,7 +51,7 @@ class TestClassifier:
 
     @staticmethod
     def test_arrays_same_size():
-        """Tests _arrays_same_size."""
+        """Tests _arrays_same_size method."""
 
         shape = (10, 10)
         arrs = [np.zeros(shape) for _ in range(3)]
@@ -68,3 +68,14 @@ class TestClassifier:
 
         with pytest.raises(ValueError):
             Classifier._arrays_same_size(arrs)
+
+    @staticmethod
+    def test_standardize_img():
+        """Test _standardize_img method."""
+
+        img = np.random.normal(loc=1.0, scale=3.0, size=(10, 10, 10))
+
+        img = Classifier._standardize_img(img)
+
+        np.testing.assert_allclose(np.mean(img), 0, atol=1e-07)
+        np.testing.assert_allclose(np.var(img), 1, atol=1e-07)
