@@ -367,6 +367,29 @@ class LabelHelper:
                 yield (y, x)
 
     @staticmethod
+    def windowed_index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
+        """Creates a generator that returns window limited indicies over a 2d array.
+        
+        THe generator returned by this method will yield the indicies for the use
+        of a sliding window of size `N_UPDATE_MASK.shape` over a 2d array with 
+        the size `(dim0, dim1)`.
+
+        Args:
+            dim0 (int): The upper limit to iterate upto for the first dimension
+            dim1 (int): The upper limit to iterate upto for the second dimension
+        
+        Returns:
+            A generator that yields indicies to iterate over a 2d array with 
+            shape [dim0, dim1]
+        """
+
+        window_y, window_x = LabelHelper.UPDATE_MASK_N.shape
+        final_y = dim0 - window_y + 1
+        final_x = dim1 - window_x + 1
+
+        return LabelHelper.index_generator(final_y, final_x)
+
+    @staticmethod
     def get_final_map(shape: List[int], y: int, x: int):
         """Creates a pixel mapping that flags pixels that won't be updated again.
         

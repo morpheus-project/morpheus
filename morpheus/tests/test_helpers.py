@@ -310,6 +310,28 @@ class TestLabelHelper:
         assert arr.all()
 
     @staticmethod
+    def test_windowed_index_generator():
+        """Test the windowed_index_generator function."""
+
+        shape = (100, 100)
+
+        arr = np.zeros(shape, dtype=np.bool)
+
+        index_gen = LabelHelper.windowed_index_generator(*shape)
+
+        for i, j in index_gen:
+            arr[i, j] = True
+
+        window_y, window_x = LabelHelper.UPDATE_MASK_N.shape
+        expected_array = np.ones((shape[0] - window_y + 1, shape[1] - window_x + 1))
+
+        expected_array = np.pad(
+            expected_array, ((0, window_y - 1), (0, window_x - 1)), "constant"
+        ).astype(np.bool)
+
+        np.testing.assert_array_equal(arr, expected_array)
+
+    @staticmethod
     def test_get_final_map_complete():
         """Test the get_final_map method on complete array."""
 
