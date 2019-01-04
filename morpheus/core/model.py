@@ -311,3 +311,8 @@ class Morpheus(morpheus.core.unet.Model):
 
         with open(config_path, "r") as f:
             return tf.contrib.training.HParams(**json.load(f))
+
+    @staticmethod
+    def get_weights_dir() -> str:
+        """Returns the location of the weights for tf.Saver."""
+        return os.path.join(os.path.dirname(__file__), "model_weights")

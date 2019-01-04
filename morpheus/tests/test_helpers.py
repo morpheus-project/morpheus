@@ -271,7 +271,7 @@ class TestFitsHelper:
         for f in expected_file_names:
             arr = fits.getdata(f)
             assert arr.shape == shape
-            assert np.issubdtype(np.float32, arr.dtype)
+            assert np.issubdtype(np.int16, arr.dtype)
             os.remove(f)
 
     @staticmethod
@@ -293,7 +293,10 @@ class TestFitsHelper:
 
 
 class TestLabelHelper:
-    """This tests the LabelHelper class."""
+    """This tests the LabelHelper class.
+    
+    TODO: Integration test for windowed_index_generator & final_map
+    """
 
     @staticmethod
     def test_index_generator():
@@ -433,3 +436,46 @@ class TestLabelHelper:
         all_same = np.equal(expected_votes, votes)
 
         assert all_same.all()
+
+    @staticmethod
+    def test_make_mean_var_arrays():
+        """Test the make_mean_var_arrays method."""
+        expected_shape = (100, 100)
+        expected_dtype = np.float32
+
+        expected_keys = []
+        for morph in LabelHelper.MORPHOLOGIES:
+            for t in ["mean", "var"]:
+                expected_keys.append(f"{morph}_{t}")
+
+        outs = LabelHelper.make_mean_var_arrays(expected_shape)
+
+        for k in expected_keys:
+            assert expected_shape == outs[k].shape
+            assert np.issubdtype(expected_dtype, outs[k].dtype)
+
+    @staticmethod
+    def test_make_rank_vote_arrays():
+        """Test the make_rank_vote_arrays method."""
+        expected_shape = (5, 100, 100)
+        expected_dtype = np.int16
+        expected_keys = LabelHelper.MORPHOLOGIES
+
+        outs = LabelHelper.make_rank_vote_arrays(expected_shape[1:])
+
+        for k in expected_keys:
+            assert expected_shape == outs[k].shape
+            assert np.issubdtype(expected_dtype, outs[k].dtype)
+
+    @staticmethod
+    def test_make_n_array():
+        """Test the make_n_array method."""
+        expected_shape = (100, 100)
+        expected_dtype = np.int16
+        expected_keys = "n"
+
+        outs = LabelHelper.make_n_array(expected_shape)
+
+        for k in expected_keys:
+            assert expected_shape == outs[k].shape
+            assert np.issubdtype(expected_dtype, outs[k].dtype)

@@ -304,7 +304,7 @@ class FitsHelper:
             file_names.append(f)
             data_keys.append(morph)
 
-            FitsHelper.create_file(f, shape, np.float32)
+            FitsHelper.create_file(f, shape, np.int16)
 
         hduls, arrays = FitsHelper.get_files(file_names, mode="update")
 
@@ -346,6 +346,9 @@ class LabelHelper:
                                 parts of the count 'n' to udpate. default:
                                 all (40, 40)
     """
+
+    # TODO: Find a better place for this
+    MORPHOLOGIES = ["spheroid", "disk", "irregular", "point_source", "background"]
 
     UPDATE_MASK = np.pad(np.ones([30, 30]), 5, mode="constant").astype(np.int16)
     UPDATE_MASK_N = np.ones([40, 40], dtype=np.int16)
@@ -445,7 +448,6 @@ class LabelHelper:
         n[n == 0] = 1
         return curr_mean + ((x_n - curr_mean) / n * update_mask)
 
-    #
     @staticmethod
     def iterative_variance(
         prev_sn: np.ndarray,
@@ -531,3 +533,176 @@ class LabelHelper:
         count = prev_count + update
 
         return count
+
+    @staticmethod
+    def update_ns(data: dict, batch_idx: List[Tuple[int, int]], inc: int = 1) -> None:
+        """Updates the n values by `inc`.
+
+        Args:
+            data (dict): a dictionary of numpy arrays containing the data
+            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            inc (int): the number to increment `n` by. Default=1
+
+        Returns
+            None
+        """
+        window_y, window_x = LabelHelper.UPDATE_MASK_N.shape
+        for y, x in batch_idx:
+            ys = slice(y, y + window_y)
+            xs = slice(x, x + window_x)
+
+            ns = data["n"][ys, xs]
+            n_update = LabelHelper.UPDATE_MASK_N * LabelHelper.UPDATE_MASK * inc
+            ns = ns + n_update
+            data["n"][ys, xs] = ns
+
+    @staticmethod
+    def update_mean_var(
+        data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]]
+    ):
+        """Updates the mean and variance outputs with the new model values.
+        
+        Args:
+            data (dict): a dict of numpy arrays containing the data
+            labels (np.ndarray): the new output from the model
+            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+
+        Returns:
+            None
+        """
+
+        window_y, window_x = LabelHelper.UPDATE_MASK_N.shape
+        total_shape = data["n"].shape
+        for i, l in enumerate(labels):
+            y, x = batch_idx[i]
+            ys = slice(y, y + window_y)
+            xs = slice(x, x + window_x)
+
+            final_map = LabelHelper.get_final_map(total_shape, y, x)
+            n = data["n"][ys, xs]
+            for j, morph in enumerate(LabelHelper.MORPHOLOGIES):
+                k_mean = f"{morph}_mean"
+                k_var = f"{morph}_var"
+
+                x_n = l[:, :, j]
+                prev_mean = data[k_mean][ys, xs]
+                prev_var = data[k_var][ys, xs]
+
+                mean = LabelHelper.iterative_mean(
+                    n, prev_mean, x_n, LabelHelper.UPDATE_MASK
+                )
+
+                var = LabelHelper.iterative_variance(
+                    prev_var, x_n, prev_mean, mean, LabelHelper.UPDATE_MASK
+                )
+                var = LabelHelper.finalize_variance(n, var, final_map)
+
+                data[k_mean][ys, xs] = mean
+                data[k_var][ys, xs] = var
+
+    @staticmethod
+    def update_rank_vote(
+        data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]]
+    ):
+        """Updates the rank vote values with the new output.     
+
+        Args:
+            data (dict): data (dict): a dict of numpy arrays containing the data
+            labels (np.ndarray): the new output from the model
+            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+
+        Returns:
+            None
+        """
+
+        window_y, window_x = LabelHelper.UPDATE_MASK_N.shape
+        for i, l in enumerate(labels):
+            y, x = batch_idx[i]
+            ys = slice(y, y + window_y)
+            xs = slice(x, x + window_x)
+
+            ranked = l.argsort().argsort()
+            for morph in enumerate(LabelHelper.MORPHOLOGIES):
+                prev_count = data[morph][:, ys, xs]
+
+                count = LabelHelper.iterative_rank_vote(
+                    ranked, prev_count, LabelHelper.UPDATE_MASK
+                )
+
+                data[morph][:, ys, xs] = count
+
+    @staticmethod
+    def update_labels(
+        data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]], out_type: str
+    ) -> None:
+        """Updates the running total label values with the new output values.
+
+        Args:
+            data (dict): data (dict): a dict of numpy arrays containing the data
+            labels (np.ndarray): the new output from the model
+            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            out_type (str): indicates which type of output to update must be 
+                            one of ['mean_var', 'rank_vote', 'both']
+
+        Returns:
+            None
+        """
+
+        LabelHelper.update_ns(data, batch_idx)
+
+        if out_type in ["both", "mean_var"]:
+            LabelHelper.update_mean_var(data, labels, batch_idx)
+        if out_type in ["both", "rank_vote"]:
+            LabelHelper.update_rank_vote(data, labels, batch_idx)
+
+    @staticmethod
+    def make_mean_var_arrays(shape: Tuple[int, int]) -> dict:
+        """Create output arrays for use in in-memory classification.
+
+        Args:
+            shape (Tuple[int]): The 2d (width, height) for to create the arrays
+
+        Returns
+            A dictionary with keys being the arrays description and values being
+            the array itself
+        """
+
+        arrays = {}
+
+        for morph in LabelHelper.MORPHOLOGIES:
+            for t in ["mean", "var"]:
+                arrays[f"{morph}_{t}"] = np.zeros(shape, dtype=np.float32)
+
+        return arrays
+
+    @staticmethod
+    def make_rank_vote_arrays(shape: Tuple[int, int]) -> dict:
+        """Create output arrays for use in in-memory classification.
+
+        Args:
+            shape (Tuple[int]): The 2d (width, height) for to create the arrays
+
+        Returns
+            A dictionary with keys being the arrays description and values being
+            the array itself
+        """
+        shape = [5, shape[0], shape[1]]
+        arrays = {}
+
+        for morph in LabelHelper.MORPHOLOGIES:
+            arrays[morph] = np.zeros(shape, dtype=np.int16)
+
+        return arrays
+
+    @staticmethod
+    def make_n_array(shape: Tuple[int, int]) -> dict:
+        """Create output array for use in in-memory classification.
+
+        Args:
+            shape (Tuple[int]): The 2d (width, height) for to create the arrays
+
+        Returns
+            A dictionary with keys being the arrays description and values being
+            the array itself
+        """
+        return {"n": np.zeros(shape, dtype=np.int16)}

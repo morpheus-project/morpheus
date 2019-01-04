@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 # ==============================================================================
 """Tests morpheus.classifier module."""
+import os
 
 import pytest
 import numpy as np
@@ -79,3 +80,22 @@ class TestClassifier:
 
         np.testing.assert_allclose(np.mean(img), 0, atol=1e-07)
         np.testing.assert_allclose(np.var(img), 1, atol=1e-07)
+
+    @staticmethod
+    def test_make_runnable_file():
+        """Test _make_runnable_file."""
+        local = os.path.dirname(os.path.abspath(__file__))
+
+        Classifier._make_runnable_file(local)
+
+        assert os.path.exists(os.path.join(local, 'main.py'))
+
+        os.remove(os.path.join(local, 'main.py'))
+
+    @staticmethod
+    def test_variables_not_none_raises():
+        """Test _variables_not_none."""
+
+        with pytest.raises(ValueError):
+            Classifier._variables_not_none(['good', 'bad'], [1, None])
+
