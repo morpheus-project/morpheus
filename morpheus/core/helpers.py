@@ -706,3 +706,37 @@ class LabelHelper:
             the array itself
         """
         return {"n": np.zeros(shape, dtype=np.int16)}
+
+    @staticmethod
+    def stitch_parallel_classifications(out_dir: str) -> None:
+        """Stitch the seperate outputs made from the parallel classifications.
+
+        Args:
+            out_dir (str): the location that contains the parallel classified
+                           subdirs
+
+        Returns:
+            None
+        """
+
+        for f in LabelHelper.MORPHOLOGIES:
+            to_be_stitched = []
+            for output in sorted(os.listdir()):
+                if os.path.isdir(output):
+                    fname = os.path.join(output, "output/{}.fits".format(f))
+                    to_be_stitched.append(fits.getdata(fname)[-1, :, :])
+
+            size = to_be_stitched[0].shape
+            new_y = sum(t.shape[0] for t in to_be_stitched) - (
+                40 * (len(to_be_stitched) - 1)
+            )
+            new_x = size[1]
+            combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+            start_y = 0
+            for t in to_be_stitched:
+                combined[start_y : start_y + t.shape[0], :] += t
+                start_y = start_y + t.shape[0] - 40
+
+            fits.PrimaryHDU(data=combined).writeto(
+                "combined_{}.fits".format(f), overwrite=True
+            )

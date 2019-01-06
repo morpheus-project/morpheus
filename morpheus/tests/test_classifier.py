@@ -88,14 +88,13 @@ class TestClassifier:
 
         Classifier._make_runnable_file(local)
 
-        assert os.path.exists(os.path.join(local, 'main.py'))
+        assert os.path.exists(os.path.join(local, "main.py"))
 
-        os.remove(os.path.join(local, 'main.py'))
+        os.remove(os.path.join(local, "main.py"))
 
     @staticmethod
     def test_variables_not_none_raises():
         """Test _variables_not_none."""
 
         with pytest.raises(ValueError):
-            Classifier._variables_not_none(['good', 'bad'], [1, None])
-
+            Classifier._variables_not_none(["good", "bad"], [1, None])

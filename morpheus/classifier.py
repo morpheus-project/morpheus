@@ -126,7 +126,7 @@ class Classifier:
 
                 time.sleep(15 * 60)
 
-            
+            helpers.LabelHelper.stitch_parallel_classifications(out_dir)
 
         for hdul in hduls:
             hdul.close()

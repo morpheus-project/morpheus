@@ -41,8 +41,7 @@ class Model:
 
     Optional methods to override:
         train_metrics: to add metrics during training
-        test_metrics: to add metrics during testing,
-                      can be same as train_metrics
+        test_metrics: to add metrics during testing, can be same as train_metrics
         optimizer: updates params based on a loss tensor
         loss_func: defines a loss value given and x and y tensor
         inference: default applies softmax to tensor from model_fn

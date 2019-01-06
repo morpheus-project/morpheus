@@ -34,24 +34,8 @@ import morpheus.core.unet
 class Morpheus(morpheus.core.unet.Model):
     """The main class for the Morpheus model.
 
-    Args:
-        hparams (tf.contrib.training.HParams): Model Hyperparameters
-        dataset (tf.data.Dataset): dataset to use for training
-        data_format: channels_first or channels_last
-
-    Required HParams:
-        inference (bool): true if using pretrained model
-        down_filters (list): number of filters for each down conv section
-        num_down_convs (int): number of conv ops per down conv section
-        up_filters (list): number of filters for each up conv section
-        num_up_convs (int): number of conv ops per up conv section
-        batch_norm (bool): use batch normalization
-        dropout (bool): use dropout
-
-    Optional HParams:
-        learning_rate (float): learning rate for training, required if inference
-                               is set to false
-        dropout_rate (float): the percentage of neurons to drop [0.0, 1.0]
+    This class takes an Tensorflow HParams object as an argument and it should 
+    contain the following properties:
 
     Note if you are using a pretrained weights for inference only you need
     to mock the dataset object and use the default hparams.
@@ -61,13 +45,29 @@ class Morpheus(morpheus.core.unet.Model):
     You can get the default HParams by calling Morpheus.inference_hparams().
 
     An example call for inference only
-    ```
-    dataset = Morpheus.mock_dataset()
-    hparams = Morpheus.inference_hparams()
-    data_format = 'channels_last'
+    
+    >>> dataset = Morpheus.mock_dataset()
+    >>> hparams = Morpheus.inference_hparams()
+    >>> data_format = 'channels_last'
+    >>> morph = Morpheus(hparams, dataset, data_format)
 
-    morph = Morpheus(hparams, dataset, data_format)
-    ```
+    Required HParams:
+        * inference (bool): true if using pretrained model
+        * down_filters (list): number of filters for each down conv section
+        * num_down_convs (int): number of conv ops per down conv section
+        * up_filters (list): number of filters for each up conv section
+        * num_up_convs (int): number of conv ops per up conv section
+        * batch_norm (bool): use batch normalization
+        * dropout (bool): use dropout
+
+    Optional HParams:
+        * learning_rate (float): learning rate for training, required if inference is set to false
+        * dropout_rate (float): the percentage of neurons to drop [0.0, 1.0]
+
+    Args:
+        hparams (tf.contrib.training.HParams): Model Hyperparameters
+        dataset (tf.data.Dataset): dataset to use for training
+        data_format: channels_first or channels_last
 
     TODO:
         * Make optimizer a paramter
