@@ -148,9 +148,6 @@ class OptionalFunc:
 class FitsHelper:
     """A class that handles basic FITS file functions."""
 
-    # TODO: Find a better place for this
-    MORPHOLOGIES = ["spheroid", "disk", "irregular", "point_source", "background"]
-
     @staticmethod
     def create_file(file_name: str, data_shape: tuple, dtype) -> None:
         """Creates a fits file without loading it into memory.
@@ -266,7 +263,7 @@ class FitsHelper:
 
         data_keys = []
         file_names = []
-        for morph in FitsHelper.MORPHOLOGIES:
+        for morph in LabelHelper.MORPHOLOGIES:
             for t in ["mean", "var"]:
                 f = os.path.join(out_dir, f"{morph}_{t}.fits")
                 file_names.append(f)
@@ -298,7 +295,7 @@ class FitsHelper:
 
         data_keys = []
         file_names = []
-        for morph in FitsHelper.MORPHOLOGIES:
+        for morph in LabelHelper.MORPHOLOGIES:
             f = os.path.join(out_dir, f"{morph}.fits")
             file_names.append(f)
             data_keys.append(morph)
@@ -346,7 +343,6 @@ class LabelHelper:
                                 all (40, 40)
     """
 
-    # TODO: Find a better place for this
     MORPHOLOGIES = ["spheroid", "disk", "irregular", "point_source", "background"]
 
     UPDATE_MASK = np.pad(np.ones([30, 30]), 5, mode="constant").astype(np.int16)
@@ -705,37 +701,3 @@ class LabelHelper:
             the array itself
         """
         return {"n": np.zeros(shape, dtype=np.int16)}
-
-    @staticmethod
-    def stitch_parallel_classifications(out_dir: str) -> None:
-        """Stitch the seperate outputs made from the parallel classifications.
-
-        Args:
-            out_dir (str): the location that contains the parallel classified
-                           subdirs
-
-        Returns:
-            None
-        """
-
-        for f in LabelHelper.MORPHOLOGIES:
-            to_be_stitched = []
-            for output in sorted(os.listdir(out_dir)):
-                if os.path.isdir(output):
-                    fname = os.path.join(output, "output/{}.fits".format(f))
-                    to_be_stitched.append(fits.getdata(fname)[-1, :, :])
-
-            size = to_be_stitched[0].shape
-            new_y = sum(t.shape[0] for t in to_be_stitched) - (
-                40 * (len(to_be_stitched) - 1)
-            )
-            new_x = size[1]
-            combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
-            start_y = 0
-            for t in to_be_stitched:
-                combined[start_y : start_y + t.shape[0], :] += t
-                start_y = start_y + t.shape[0] - 40
-
-            fits.PrimaryHDU(data=combined).writeto(
-                "combined_{}.fits".format(f), overwrite=True
-            )

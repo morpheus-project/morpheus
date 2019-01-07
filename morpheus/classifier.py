@@ -65,15 +65,15 @@ class Classifier:
             z (str): The file location of the Z band FITS file
             v (str): The file location of the V band FITS file
             out_dir (str): The location where to save the output files
-                           if None returns the output in memory only. (None 
+                           if None returns the output in memory only. (None
                            not implemented)
             pad (bool): if True pad the input with zeros, so that every pixel is
                         classified the same number of times. If False, don't pad.
                         (Not implemented yet)
             batch_size (int): the number of image sections to process at a time
-            out_type (str): how to process the output from Morpheus. If 
+            out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
-                            'rank_vote' record output as the normaized vote 
+                            'rank_vote' record output as the normaized vote
                             count. If 'both' record both outputs.
             gpus (List[int]): A list of the CUDA gpu ID's to use for a
                               parallel classification.
@@ -126,7 +126,7 @@ class Classifier:
 
                 time.sleep(15 * 60)
 
-            helpers.LabelHelper.stitch_parallel_classifications(out_dir)
+            Classifier._stitch_parallel_classifications(out_dir)
 
         for hdul in hduls:
             hdul.close()
@@ -150,15 +150,15 @@ class Classifier:
             z (np.ndarray): the Z band values for an image
             v (np.ndarray): the V band values for an iamge
             out_dir (str): The location where to save the output files
-                           if None returns the output in memory only. (None 
+                           if None returns the output in memory only. (None
                            not implemented)
             pad (bool): if True pad the input with zeros, so that every pixel is
                         classified the same number of times. If False, don't pad.
                         (Not implemented)
             batch_size (int): the number of image sections to process at a time
-            out_type (str): how to process the output from Morpheus. If 
+            out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
-                            'rank_vote' record output as the normaized vote 
+                            'rank_vote' record output as the normaized vote
                             count. If 'both' record both outputs.
 
         Returns:
@@ -284,7 +284,7 @@ class Classifier:
         """Verifies that all variables are not None.
 
         Args:
-            names (List[str]): list of names of variables in the same order as 
+            names (List[str]): list of names of variables in the same order as
                                `values`
             names (List[np.ndarray]): list of numpy arrays that should not be
                                       None
@@ -332,10 +332,10 @@ class Classifier:
     def _call_morpheus(batch: np.ndarray) -> np.ndarray:
         """Use morpheus to classify a batch of input values.
 
-        Morpheus is called as a singleton using this method. 
+        Morpheus is called as a singleton using this method.
 
         Args:
-            batch (np.ndarray): The input data in the shape 
+            batch (np.ndarray): The input data in the shape
                                 [batch, channels, width, height]
 
         Returns:
@@ -390,7 +390,7 @@ class Classifier:
             split_length (int): The length each slice should be
 
         Returns
-            A generator that yields slice objects 
+            A generator that yields slice objects
 
         TODO: Implement splits along other axes
         """
@@ -451,3 +451,37 @@ class Classifier:
 
         with open(os.path.join(path, "main.py"), "w") as f:
             f.write("\n".join(text))
+
+    @staticmethod
+    def _stitch_parallel_classifications(out_dir: str) -> None:
+        """Stitch the seperate outputs made from the parallel classifications.
+
+        Args:
+            out_dir (str): the location that contains the parallel classified
+                           subdirs
+
+        Returns:
+            None
+        """
+
+        for f in helpers.LabelHelper.MORPHOLOGIES:
+            to_be_stitched = []
+            for output in sorted(os.listdir(out_dir)):
+                if os.path.isdir(output):
+                    fname = os.path.join(output, "output/{}.fits".format(f))
+                    to_be_stitched.append(fits.getdata(fname)[-1, :, :])
+
+            size = to_be_stitched[0].shape
+            new_y = sum(t.shape[0] for t in to_be_stitched) - (
+                40 * (len(to_be_stitched) - 1)
+            )
+            new_x = size[1]
+            combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+            start_y = 0
+            for t in to_be_stitched:
+                combined[start_y : start_y + t.shape[0], :] += t
+                start_y = start_y + t.shape[0] - 40
+
+            fits.PrimaryHDU(data=combined).writeto(
+                os.path.join(out_dir, f"{f}.fits"), overwrite=True
+            )
