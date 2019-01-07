@@ -56,6 +56,7 @@ class Classifier:
         batch_size: int = 1000,
         out_type: str = "rank_vote",
         gpus: List[int] = None,
+        parallel_check_interval: int = 15,
     ) -> None:
         """Classify FITS files using morpheus.
 
@@ -77,6 +78,9 @@ class Classifier:
                             count. If 'both' record both outputs.
             gpus (List[int]): A list of the CUDA gpu ID's to use for a
                               parallel classification.
+            parallel_check_interval (int): If gpus are given, then this is the number
+                                           of minutes to wait between polling each
+                                           subprocess for completetion
 
         Returns:
             None
@@ -97,35 +101,10 @@ class Classifier:
                 batch_size=batch_size,
             )
         else:
-            num_gpus = len(gpus)
-            split_length = Classifier._get_split_length(h.shape, num_gpus)
-            split_slices = Classifier._get_split_slice_generator(
-                h.shape, num_gpus, split_length
+            Classifier._build_parallel_classification_structure(
+                [h, j, v, z], gpus, out_dir
             )
-            processes = {g: {} for g in gpus}
-
-            for gpu, split_slice in tqdm(zip(sorted(gpus), split_slices)):
-                sub_output_dir = os.path.join(out_dir, str(gpu))
-                os.mkdir(sub_output_dir)
-
-                for name, data in zip(["h", "j", "v", "z"], [h, j, v, z]):
-                    tmp_location = os.path.join(sub_output_dir, "{}.fits".format(name))
-                    fits.PrimaryHDU(data=data[split_slice, :]).writeto(tmp_location)
-
-                Classifier._make_runnable_file(sub_output_dir)
-
-                cmd_string = f"CUDA_VISIBLE_DEVICES={gpu} python main.py"
-                processes[gpu] = Popen(cmd_string, shell=True, cwd=sub_output_dir)
-
-            is_running = np.ones([num_gpus], dtype=np.bool)
-
-            while is_running.any():
-                for i, g in enumerate(sorted(gpus)):
-                    if is_running[i] and processes[g].poll():
-                        is_running[i] = False
-
-                time.sleep(15 * 60)
-
+            Classifier._run_parallel_jobs(gpus, out_dir, parallel_check_interval)
             Classifier._stitch_parallel_classifications(out_dir)
 
         for hdul in hduls:
@@ -485,3 +464,71 @@ class Classifier:
             fits.PrimaryHDU(data=combined).writeto(
                 os.path.join(out_dir, f"{f}.fits"), overwrite=True
             )
+
+    @staticmethod
+    def _build_parallel_classification_structure(
+        arrs: List[np.ndarray], gpus: List[int], out_dir: str
+    ) -> None:
+        """Sets up the subdirs and files to run the parallel classification.
+
+        Args:
+            arrs (List[np.ndarray]): List of arrays to split up in the order HJVZ
+            gpus (List[int]): A list of the CUDA gpu ID's to use for a
+                              parallel classification.
+            out_dir (str): the location to place the subdirs in
+
+        Returns:
+            None
+        """
+
+        shape = arrs[0].shape
+        num_gpus = len(gpus)
+        split_slices = Classifier._get_split_slice_generator(
+            shape, num_gpus, Classifier._get_split_length(shape, num_gpus)
+        )
+
+        for gpu, split_slice in tqdm(zip(sorted(gpus), split_slices)):
+            sub_output_dir = os.path.join(out_dir, str(gpu))
+            os.mkdir(sub_output_dir)
+
+            for name, data in zip(["h", "j", "v", "z"], arrs):
+                tmp_location = os.path.join(sub_output_dir, "{}.fits".format(name))
+                fits.PrimaryHDU(data=data[split_slice, :]).writeto(tmp_location)
+
+            Classifier._make_runnable_file(sub_output_dir)
+
+    @staticmethod
+    def _run_parallel_jobs(
+        gpus: List[int], out_dir: str, parallel_check_interval: int
+    ) -> None:
+        """Starts and tracks parallel job runs.
+
+        Warning: This will not finish running until all subprocesses are complete
+
+        Args:
+            gpus (List[int]): A list of the CUDA gpu ID's to use for a
+                              parallel classification.
+            out_dir (str): the location with the partitioned data
+            parallel_check_interval (int): If gpus are given, then this is the number
+                                           of minutes to wait between polling each
+                                           subprocess for completetion
+
+        Returns:
+            None
+        """
+
+        processes = {}
+
+        for gpu in gpus:
+            cmd_string = f"CUDA_VISIBLE_DEVICES={gpu} python main.py"
+            sub_dir = os.path.join(out_dir, gpu)
+            processes[gpu] = Popen(cmd_string, shell=True, cwd=sub_dir)
+
+        is_running = np.ones([len(gpus)], dtype=np.bool)
+
+        while is_running.any():
+            for i, g in enumerate(sorted(gpus)):
+                if is_running[i] and processes[g].poll():
+                    is_running[i] = False
+
+            time.sleep(parallel_check_interval * 60)
