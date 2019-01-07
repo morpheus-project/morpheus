@@ -17,6 +17,8 @@
 .. image:: https://img.shields.io/badge/python-3.6-blue.svg
     :target: https://www.python.org/downloads/release/python-360/
 
+.. image:: https://readthedocs.org/projects/morpheus-astro/badge/?version=latest
+    :target: https://morpheus-astro.readthedocs.io
 
 Morpheus is a neural network model used to generate pixel level morphological
 classifications for astronomical sources. This model can be used to generate
