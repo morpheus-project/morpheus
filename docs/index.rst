@@ -3,7 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Morpheus's documentation!
+.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg.png
+    :target: https://github.com/morpheus-project/morpheus
+    :align: center
+
 ====================================
 
 .. toctree::
@@ -12,7 +15,7 @@ Welcome to Morpheus's documentation!
 
 
 .. include:: ../README.rst
-   :start-line: 16
+   :start-line: 19
 
 
 

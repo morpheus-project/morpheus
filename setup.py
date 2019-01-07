@@ -14,7 +14,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = "morpheus"
+NAME = "morpheus-astro"
 DESCRIPTION = "Morphologically encoded segmentation maps."
 URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
@@ -122,5 +122,5 @@ setup(
         "Programming Language :: Python :: Implementation :: PyPy",
     ],
     # $ setup.py publish support.
-    cmdclass={"upload": UploadCommand},
+    # cmdclass={"upload": UploadCommand},
 )
