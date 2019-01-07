@@ -50,9 +50,9 @@ class TFLogger:
     def info(msg: str) -> None:
         """Log at info level in green.
 
-        Args:
-            msg (str): The string to be logged
-
+    @staticmethod
+    @staticmethodgged
+    @staticmethod
         Returns:
             None
         """
@@ -122,15 +122,14 @@ class OptionalFunc:
     be overridden.
     """
 
-    @staticmethod
-    def placeholder(*args):
+    def placeholder(self, *args):
         """Placeholder function used as default in __init__"""
-        return list(*args)
+        return list(args)
 
-    def __init__(self, warn_msg: str, init_func: FunctionType = placeholder):
+    def __init__(self, warn_msg: str, init_func: FunctionType = None):
         """"""
         self._warn_msg = warn_msg
-        self._func = init_func
+        self._func = init_func if init_func else self.placeholder
         self._is_default = True
 
     def __get__(
@@ -260,7 +259,7 @@ class FitsHelper:
 
             Returns:
                 List[fits.HDUList]: for the created files
-                Dict(str, np.ndarray): a dictionary where the key is the data 
+                Dict(str, np.ndarray): a dictionary where the key is the data
                                        descriptor and the value is the memmapped
                                        data numpy array
         """
@@ -292,7 +291,7 @@ class FitsHelper:
 
             Returns:
                 List[fits.HDUList]: for the created files
-                Dict(str, np.ndarray): a dictionary where the key is the data 
+                Dict(str, np.ndarray): a dictionary where the key is the data
                                        descriptor and the value is the memmapped
                                        data numpy array
         """
@@ -323,7 +322,7 @@ class FitsHelper:
 
             Returns:
                 List[fits.HDUList]: for the created files
-                Dict(str, np.ndarray): a dictionary where the key is the data 
+                Dict(str, np.ndarray): a dictionary where the key is the data
                                        descriptor and the value is the memmapped
                                        data numpy array
         """
@@ -337,7 +336,7 @@ class FitsHelper:
 
 class LabelHelper:
     """Class to help with label updates.
-    
+
     Class Variables:
     UPDATE_MASK (np.ndarray): the (40, 40) integer array that indicates which
                               parts of the output of the model to include in the
@@ -356,13 +355,13 @@ class LabelHelper:
     @staticmethod
     def index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
         """Creates a generator that returns indicies to iterate over a 2d array.
-        
+
         Args:
             dim0 (int): The upper limit to iterate upto for the first dimension
             dim1 (int): The upper limit to iterate upto for the second dimension
-        
+
         Returns:
-            A generator that yields indicies to iterate over a 2d array with 
+            A generator that yields indicies to iterate over a 2d array with
             shape [dim0, dim1]
         """
         for y in range(dim0):
@@ -372,17 +371,17 @@ class LabelHelper:
     @staticmethod
     def windowed_index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
         """Creates a generator that returns window limited indicies over a 2d array.
-        
+
         THe generator returned by this method will yield the indicies for the use
-        of a sliding window of size `N_UPDATE_MASK.shape` over a 2d array with 
+        of a sliding window of size `N_UPDATE_MASK.shape` over a 2d array with
         the size `(dim0, dim1)`.
 
         Args:
             dim0 (int): The upper limit to iterate upto for the first dimension
             dim1 (int): The upper limit to iterate upto for the second dimension
-        
+
         Returns:
-            A generator that yields indicies to iterate over a 2d array with 
+            A generator that yields indicies to iterate over a 2d array with
             shape [dim0, dim1]
         """
 
@@ -395,7 +394,7 @@ class LabelHelper:
     @staticmethod
     def get_final_map(shape: List[int], y: int, x: int):
         """Creates a pixel mapping that flags pixels that won't be updated again.
-        
+
         Args:
             shape (List[int]): the shape of the array that x and y are indexing
             y (int): the current y index
@@ -434,15 +433,15 @@ class LabelHelper:
         http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf, eq. 4
 
         Args:
-            n (np.ndarray): a 2d array containg the number of terms in mean so 
+            n (np.ndarray): a 2d array containg the number of terms in mean so
                             far,
-            prev_mean (np.ndarray): the current calculated mean. 
+            prev_mean (np.ndarray): the current calculated mean.
             x_n (np.ndarray): the new values to add to the mean
-            update_mask (np.ndarray): a 2d boolean array indicating which 
+            update_mask (np.ndarray): a 2d boolean array indicating which
                                       indicies in the array should be updated.
 
         Returns:
-            An array with the same shape as the curr_mean with the newly 
+            An array with the same shape as the curr_mean with the newly
             calculated mean values.
         """
         n[n == 0] = 1
@@ -458,7 +457,7 @@ class LabelHelper:
     ):
         """The first of two methods used to calculate the variance online.
 
-        This method specifically calculates the $S_n$ value as indicated in 
+        This method specifically calculates the $S_n$ value as indicated in
         equation 24 from:
 
         http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
@@ -474,7 +473,7 @@ class LabelHelper:
         Returns:
             An np.ndarray containg the current value for $S_n$
 
-        
+
         """
         return prev_sn + ((x_n - prev_mean) * (x_n - curr_mean) * update_mask)
 
@@ -486,13 +485,13 @@ class LabelHelper:
 
         This method calcaulates the final variance value using equation 25 from
 
-        http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf 
+        http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
 
         but without performing the square root.
 
         Args:
             n (np.ndarray): the current number of values included in the calculation
-            curr_sn (np.ndarray): the current $S_n$ values 
+            curr_sn (np.ndarray): the current $S_n$ values
             final_map List[(y, x)]: a list of indicies to calculate the final
                                     variance for
 
@@ -513,14 +512,14 @@ class LabelHelper:
         """Calculates the updated values for the rank vote labels for a one class.
 
         Args:
-            x_n (np.ndarray): the current rank vote values for the class being 
+            x_n (np.ndarray): the current rank vote values for the class being
                               updated
             prev_count (np.ndarray): the array containing the running totals,
                                      should be shaped as [labels, height, width]
-            update_mask (np.ndarray): a boolean array indicating which values to 
+            update_mask (np.ndarray): a boolean array indicating which values to
                                       update
 
-        Returns:    
+        Returns:
             A numpy array containing the updated count values
         """
         update = np.zeros_like(prev_count)
@@ -561,7 +560,7 @@ class LabelHelper:
         data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]]
     ):
         """Updates the mean and variance outputs with the new model values.
-        
+
         Args:
             data (dict): a dict of numpy arrays containing the data
             labels (np.ndarray): the new output from the model
@@ -604,7 +603,7 @@ class LabelHelper:
     def update_rank_vote(
         data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]]
     ):
-        """Updates the rank vote values with the new output.     
+        """Updates the rank vote values with the new output.
 
         Args:
             data (dict): data (dict): a dict of numpy arrays containing the data
@@ -641,7 +640,7 @@ class LabelHelper:
             data (dict): data (dict): a dict of numpy arrays containing the data
             labels (np.ndarray): the new output from the model
             batch_idx (List[Tuple[int, int]]): a list of indicies to update
-            out_type (str): indicates which type of output to update must be 
+            out_type (str): indicates which type of output to update must be
                             one of ['mean_var', 'rank_vote', 'both']
 
         Returns:
@@ -721,7 +720,7 @@ class LabelHelper:
 
         for f in LabelHelper.MORPHOLOGIES:
             to_be_stitched = []
-            for output in sorted(os.listdir()):
+            for output in sorted(os.listdir(out_dir)):
                 if os.path.isdir(output):
                     fname = os.path.join(output, "output/{}.fits".format(f))
                     to_be_stitched.append(fits.getdata(fname)[-1, :, :])

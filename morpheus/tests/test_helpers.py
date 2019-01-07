@@ -73,9 +73,11 @@ class TestOptionalFunc:
     @staticmethod
     def test_placeholder():
         """Tests the dummy function in OptionalFunc"""
-        args = [1, 2, 3]
+        expected_args = [1, 2, 3]
 
-        assert args == OptionalFunc.placeholder(args)
+        opt = OptionalFunc("Test")
+
+        assert expected_args == opt.placeholder(1, 2, 3)
 
     @staticmethod
     def test_default_is_set():
@@ -294,7 +296,7 @@ class TestFitsHelper:
 
 class TestLabelHelper:
     """This tests the LabelHelper class.
-    
+
     TODO: Integration test for windowed_index_generator & final_map
     """
 

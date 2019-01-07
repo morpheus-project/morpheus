@@ -24,6 +24,7 @@
 import collections
 
 import pytest
+import numpy as np
 import tensorflow as tf
 
 import morpheus.core.base_model as base_model
@@ -37,10 +38,12 @@ class TestAssistant:
     def mock_dataset() -> collections.namedtuple:
         """Makes a compatible mock dataset.
 
-        This snippet is borrowed from morpheus.core.model.Morpheus
+        This snippet is adapted from morpheus.core.model.Morpheus
         """
-        MockDataset = collections.namedtuple("Dataset", ["num_labels"])
-        return MockDataset(5)
+        MockDataset = collections.namedtuple("Dataset", ["num_labels", "train", "test"])
+
+        train_data = (TestAssistant.zero_array(), TestAssistant.zero_array())
+        return MockDataset(5, train=train_data, test=train_data)
 
     @staticmethod
     def mock_hparams(
@@ -99,13 +102,19 @@ class TestAssistant:
 
         return tf.zeros(shape, dtype=tf.float32)
 
+    @staticmethod
+    def zero_array() -> np.ndarray:
+        """Makes a zero filled tensor with shape [3, 3]"""
+
+        return np.zeros([3, 3])
+
 
 class TestBaseModel:
-    """A class that tests the functions of morpheus.core.base_model.Model"""
+    """A class that tests the functions of morpheus.core.base_model.Model."""
 
     @staticmethod
     def test_model_fn_raises():
-        """Tests that the non overridden model_fn raises NotImplemented"""
+        """Tests that the non overridden model_fn raises NotImplemented."""
 
         model = base_model.Model(TestAssistant.mock_dataset())
         with pytest.raises(NotImplementedError):
@@ -113,12 +122,54 @@ class TestBaseModel:
 
     @staticmethod
     def test_build_graph_raises():
-        """Tests that the non overridden model_fn raises on a build_graph call.
-        """
+        """Tests that the non overridden model_fn raises on a build_graph call."""
 
         model = base_model.Model(TestAssistant.mock_dataset())
         with pytest.raises(NotImplementedError):
             model.build_graph(TestAssistant.zero_tensor(), True)
+
+    @staticmethod
+    def test_build_graph():
+        """Tests the build_graph method."""
+
+        model = base_model.Model(TestAssistant.mock_dataset())
+        model.model_fn = lambda x, y: (x, y)
+        expected_x = TestAssistant.zero_array()
+        expected_is_training = True
+
+        x, is_training = model.build_graph(expected_x, expected_is_training)
+
+        np.testing.assert_array_equal(x, expected_x)
+        assert is_training == expected_is_training
+
+    @staticmethod
+    def test_build_graph_singleton():
+        """Tests the build_graph method, two calls."""
+
+        model = base_model.Model(TestAssistant.mock_dataset())
+        model.model_fn = lambda x, y: (x, y)
+        expected_x = TestAssistant.zero_array()
+        expected_is_training = True
+
+        model.build_graph(expected_x, expected_is_training)
+        x, is_training = model.build_graph(expected_x, expected_is_training)
+
+        np.testing.assert_array_equal(x, expected_x)
+        assert is_training == expected_is_training
+
+    @staticmethod
+    def test_train():
+        """Test the train() method, doesn't raise."""
+        model = base_model.Model(TestAssistant.mock_dataset())
+        model.model_fn = lambda x, y: x
+        model.train()
+
+    @staticmethod
+    def test_test():
+        """Test the test() method, doesn't raise."""
+        model = base_model.Model(TestAssistant.mock_dataset())
+        model.model_fn = lambda x, y: x
+        model.test()
 
 
 class TestUNet:
