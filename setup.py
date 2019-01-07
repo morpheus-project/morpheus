@@ -19,11 +19,17 @@ DESCRIPTION = "Morphologically encoded segmentation maps."
 URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
-REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.1"
+REQUIRES_PYTHON = ">=3.6"
+VERSION = "0.1.2"
 
 # What packages are required for this module to be executed?
-REQUIRED = ["tensorflow"]
+REQUIRED = [
+    "numpy",
+    "colorama",
+    "astropy",
+    "tensorflow",
+    "tqdm",
+    ]
 
 # What packages are optional?
 EXTRAS = {
@@ -44,15 +50,6 @@ try:
         long_description = "\n" + f.read()
 except FileNotFoundError:
     long_description = DESCRIPTION
-
-# Load the package's __version__.py module as a dictionary.
-about = {}
-if not VERSION:
-    with open(os.path.join(here, NAME, "__version__.py")) as f:
-        exec(f.read(), about)  # pylint: disable=w0122
-else:
-    about["__version__"] = VERSION
-
 
 class UploadCommand(Command):
     """Support setup.py upload."""
@@ -85,7 +82,7 @@ class UploadCommand(Command):
         os.system("twine upload dist/*")
 
         self.status("Pushing git tags…")
-        os.system("git tag v{0}".format(about["__version__"]))
+        os.system("git tag v{0}".format(VERSION))
         os.system("git push --tags")
 
         sys.exit()
@@ -94,7 +91,7 @@ class UploadCommand(Command):
 # Where the magic happens:
 setup(
     name=NAME,
-    version=about["__version__"],
+    version=VERSION,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/x-rst",
@@ -102,7 +99,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=("tests",)),
+    packages=find_packages(exclude=("morpheus.tests",)),
     # If your package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
     # entry_points={
