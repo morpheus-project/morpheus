@@ -66,8 +66,6 @@ class Classifier:
             z (str): The file location of the Z band FITS file
             v (str): The file location of the V band FITS file
             out_dir (str): The location where to save the output files
-                           if None returns the output in memory only. (None
-                           not implemented)
             pad (bool): if True pad the input with zeros, so that every pixel is
                         classified the same number of times. If False, don't pad.
                         (Not implemented yet)
@@ -129,8 +127,7 @@ class Classifier:
             z (np.ndarray): the Z band values for an image
             v (np.ndarray): the V band values for an iamge
             out_dir (str): The location where to save the output files
-                           if None returns the output in memory only. (None
-                           not implemented)
+                           if None returns the output in memory only.
             pad (bool): if True pad the input with zeros, so that every pixel is
                         classified the same number of times. If False, don't pad.
                         (Not implemented)
@@ -141,7 +138,7 @@ class Classifier:
                             count. If 'both' record both outputs.
 
         Returns:
-            The classification output of the model if out_dir is None(not implemented)
+            The classification output of the model as a dict if out_dir is None
             otherwise None
 
         Raises:
@@ -216,6 +213,9 @@ class Classifier:
 
         for hdul in hduls:
             hdul.close()
+
+        if out_dir is None:
+            return data
 
     @staticmethod
     def _standardize_img(img: np.ndarray) -> np.ndarray:
