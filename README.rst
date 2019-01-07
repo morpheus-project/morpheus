@@ -1,5 +1,5 @@
 
-.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg.png
+.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus
     :align: center
 
