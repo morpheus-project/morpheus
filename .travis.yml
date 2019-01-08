@@ -13,8 +13,8 @@ install:
   # - conda info -a
   # - conda env create -f env.yaml
   # - source activate morpheus
-  pip install .
-  pip install pytest pytest-cov
+  - pip install .
+  - pip install pytest pytest-cov
 script:
   - pytest --cov=morpheus
 after_success:
