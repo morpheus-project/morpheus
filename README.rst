@@ -41,14 +41,3 @@ Documentation
 =============
 
 https://morpheus-astro.readthedocs.io/
-
-
-**TODO**:
-
-* Make pip package
-* Make leaflet map
-* Add data submodule
-* Pick an example image to classify
-* Make colab notebook
-* Write more tests
-* Create a Tensorflow.js version of the model
