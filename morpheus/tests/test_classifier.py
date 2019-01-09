@@ -28,6 +28,7 @@ import numpy as np
 from morpheus.classifier import Classifier
 
 
+@pytest.mark.unit
 class TestClassifier:
     """Tests morpheus.classifier.Classifier"""
 

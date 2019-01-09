@@ -23,11 +23,13 @@
 
 from astropy.io import fits
 import numpy as np
+import pytest
 
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
 
+@pytest.mark.integration
 class TestIntegration:
     """User level integration tests"""
 
@@ -64,5 +66,6 @@ class TestIntegration:
                 outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
             )
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     TestIntegration.test_classify_image()

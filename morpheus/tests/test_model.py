@@ -109,6 +109,7 @@ class TestAssistant:
         return np.zeros([3, 3])
 
 
+@pytest.mark.unit
 class TestBaseModel:
     """A class that tests the functions of morpheus.core.base_model.Model."""
 
@@ -172,6 +173,7 @@ class TestBaseModel:
         model.test()
 
 
+@pytest.mark.unit
 class TestUNet:
     """A class that tests the functions of morpheus.core.unet.Model"""
 

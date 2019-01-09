@@ -33,6 +33,7 @@ from morpheus.core.helpers import OptionalFunc
 from morpheus.core.helpers import LabelHelper
 
 
+@pytest.mark.unit
 class TestTFLogger:
     """This tests the TFLogger class' funtions.
 
@@ -67,6 +68,7 @@ class TestTFLogger:
         TFLogger.tensor_shape(t)
 
 
+@pytest.mark.unit
 class TestOptionalFunc:
     """This tests OptionalFunc class."""
 
@@ -97,6 +99,7 @@ class TestOptionalFunc:
         assert not of._is_default
 
 
+@pytest.mark.unit
 class TestFitsHelper:
     """This tests the FITS helper class."""
 
@@ -110,6 +113,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_unit8_file():
         """Tests 2d uint8 file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_unit8.fits")
         dummy_shape = (200, 200)
@@ -127,6 +131,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_int16_file():
         """Tests 2d int16 file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_int16.fits")
         dummy_shape = (200, 200)
@@ -144,6 +149,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_int32_file():
         """Tests 2d int32 file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_int32.fits")
         dummy_shape = (200, 200)
@@ -161,6 +167,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_float32_file():
         """Tests 2d float32 file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_float32.fits")
         dummy_shape = (200, 200)
@@ -178,6 +185,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_float64_file():
         """Tests 2d float64 file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_float64.fits")
         dummy_shape = (200, 200)
@@ -195,6 +203,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_file_3d():
         """Tests a 3d file creation"""
+
         local = os.path.dirname(os.path.abspath(__file__))
         dummy_name = os.path.join(local, "dummy_unit8_3d.fits")
         dummy_shape = (200, 200, 5)
@@ -214,6 +223,7 @@ class TestFitsHelper:
     @staticmethod
     def test_get_files():
         """Tests the get_files() method"""
+
         local = os.path.dirname(os.path.abspath(__file__))
 
         dummy_file1 = os.path.join(local, "dummy1.fits")
@@ -236,6 +246,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_mean_var_files():
         """Tests create_mean_var_files method."""
+
         morphs = ["spheroid", "disk", "irregular", "point_source", "background"]
 
         local = os.path.dirname(os.path.abspath(__file__))
@@ -258,6 +269,7 @@ class TestFitsHelper:
     @staticmethod
     def test_create_rank_vote_files():
         """Tests create_rank_vote_files method."""
+
         morphs = ["spheroid", "disk", "irregular", "point_source", "background"]
 
         local = os.path.dirname(os.path.abspath(__file__))
@@ -294,6 +306,7 @@ class TestFitsHelper:
         os.remove(expected_file_name)
 
 
+@pytest.mark.unit
 class TestLabelHelper:
     """This tests the LabelHelper class.
 
@@ -359,6 +372,7 @@ class TestLabelHelper:
     @staticmethod
     def test_iterative_mean():
         """Test the iterative_mean method."""
+
         shape = (10, 10)
         terms = [np.ones(shape) * i for i in range(9)]
         mean = np.zeros(shape)
@@ -375,6 +389,7 @@ class TestLabelHelper:
     @staticmethod
     def test_iterative_variance_no_final():
         """Test the iterative variance before finalization."""
+
         shape = (10, 10)
         terms = [np.ones(shape) * i for i in range(9)]
         s_n = np.zeros(shape)
@@ -401,6 +416,7 @@ class TestLabelHelper:
     @staticmethod
     def test_iterative_variance_with_final():
         """Test the iterative variance with finalization."""
+
         shape = (10, 10)
         terms = [np.ones(shape) * i for i in range(9)]
 
@@ -424,6 +440,7 @@ class TestLabelHelper:
     @staticmethod
     def test_iterative_rank_vote():
         """Test the iterative_rank_vote method."""
+
         shape = (10, 10)
         prev_votes = np.zeros(shape)
 
@@ -443,6 +460,7 @@ class TestLabelHelper:
     @staticmethod
     def test_make_mean_var_arrays():
         """Test the make_mean_var_arrays method."""
+
         expected_shape = (100, 100)
         expected_dtype = np.float32
 
@@ -460,6 +478,7 @@ class TestLabelHelper:
     @staticmethod
     def test_make_rank_vote_arrays():
         """Test the make_rank_vote_arrays method."""
+
         expected_shape = (100, 100)
         expected_dtype = np.int16
         expected_keys = LabelHelper.MORPHOLOGIES
@@ -473,6 +492,7 @@ class TestLabelHelper:
     @staticmethod
     def test_make_n_array():
         """Test the make_n_array method."""
+
         expected_shape = (100, 100)
         expected_dtype = np.int16
         expected_keys = "n"

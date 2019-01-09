@@ -21,12 +21,14 @@
 # ==============================================================================
 """Test the data functions"""
 import os
+import pytest
 
 from astropy.io import fits
 
 import morpheus.data.example as example
 
 
+@pytest.mark.unit
 class TestExample:
     """This tests the data.example module functions."""
 
