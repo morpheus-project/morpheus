@@ -1,8 +1,7 @@
 .. Variables to use the correct hyperlinks in the readmertd build
-
-.. |classifier| replace:: `morpheus.classifier.Classifier <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier>`_
-.. |classify_arrays| replace:: `classify_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_arrays>`_
-.. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`_
+.. |classifier| replace:: `morpheus.classifier.Classifier <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier>`__
+.. |classify_arrays| replace:: `classify_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_arrays>`__
+.. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`__
 
 .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus

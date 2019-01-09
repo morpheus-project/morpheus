@@ -15,7 +15,7 @@
    :caption: Contents:
 
 .. include:: ../README.rst
-   :start-line: 28
+   :start-line: 26
 
 Indices and tables
 ==================
