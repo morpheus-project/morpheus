@@ -28,6 +28,11 @@ morphological information.
 Installation
 ============
 
+Morpheus is implemented using `Tensorflow <https://www.tensorflow.org/>`_.
+It listed in the dependecies for the package. If you want to use
+an accelerated version of Tensorflow, for example, to take advantage of GPU
+acceleration, then be sure to install it before you install Morpheus.
+
 .. code-block:: bash
 
     pip install morpheus-astro
@@ -35,7 +40,71 @@ Installation
 Usage
 =====
 
-Add This
+The main way to interact with Morpheus is by using the
+:py:class:`morpheus.classifier.Classifier` class. Using this class you can
+classify astronomical images in 2 ways:
+
+
+1. Using :py:meth:`~morpheus.classifier.Classifier.classify_arrays` to classify
+numpy arrays.
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+    from morpheus.data import example
+
+    h, j, v, z = example.get_sample()
+    morphs = Classifier.classify_arrays(h=h, j=j, v=v, z=z)
+
+The output that is returned is a dictionary where the keys are the
+morphological classes: spheroid, disk, irregular, point source, and background
+and the values are the corresponding numpy arrays.
+
+2. Using :py:meth:`~morpheus.classifier.Classifier.classify_files` to
+classify FITS files:
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+
+    # this saves the sample numpy arrays as FITS files in 'out_dir'
+    example.get_sample(out_dir='.')
+    h, j, v, z = [f'{band}.fits' for band in 'hjvz']
+
+    morphs = Classifier.classify_files(h=h, j=j, v=v, z=z)
+
+Using FITS files can be useful for classifying files that are too large to fit
+into memory. If an image is too large to fit into memory, then specify the
+``out_dir`` argument and the outputs will be saved there rather than returned.
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+
+    # this saves the sample numpy arrays as fits files in 'out_dir'
+    example.get_sample(out_dir='.')
+    h, j, v, z = [f'{band}.fits' for band in 'hjvz']
+
+    Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir='.')
+
+If you're classifying a large image and have multiple NVIDIA GPUs on the same
+machine available the image can be classified in parallel using the ``gpus``
+argument. The image split evenly along the first dimension and then handed off
+to subprocess to classify the subset of the image, after which, the image is
+stitched back together.
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+
+    # h, j, v, and, z are strings that point to a large image
+
+    # gpus should be an integer list containing the GPU ids for the GPUs that
+    # you want to use to classify the images. You can get these values by
+    # calling 'nvidia-smi'
+    gpus = [0, 1]
+
+    Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir='.', gpus=gpus)
 
 Documentation
 =============
