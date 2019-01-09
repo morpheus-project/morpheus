@@ -1,3 +1,8 @@
+.. Variables to use the correct hyperlinks in the readmertd build
+
+.. |classifier| replace:: `morpheus.classifier.Classifier <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier>`_
+.. |classify_arrays| replace:: `classify_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_arrays>`_
+.. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`_
 
 .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus
@@ -40,13 +45,10 @@ acceleration, then be sure to install it before you install Morpheus.
 Usage
 =====
 
-The main way to interact with Morpheus is by using the
-:py:class:`morpheus.classifier.Classifier` class. Using this class you can
-classify astronomical images in 2 ways:
+The main way to interact with Morpheus is by using the |classifier|
+class. Using this class you can classify astronomical images in 2 ways:
 
-
-1. Using :py:meth:`~morpheus.classifier.Classifier.classify_arrays` to classify
-numpy arrays.
+1. Using |classify_arrays| to classify numpy arrays.
 
 .. code-block:: python
 
@@ -60,8 +62,7 @@ The output that is returned is a dictionary where the keys are the
 morphological classes: spheroid, disk, irregular, point source, and background
 and the values are the corresponding numpy arrays.
 
-2. Using :py:meth:`~morpheus.classifier.Classifier.classify_files` to
-classify FITS files:
+2. Using |classify_files| to classify FITS files:
 
 .. code-block:: python
 

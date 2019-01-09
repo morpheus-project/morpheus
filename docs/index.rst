@@ -1,7 +1,8 @@
-.. Morpheus documentation master file, created by
-   sphinx-quickstart on Fri Jan  4 21:18:32 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. Variables to use the correct hyperlinks in the readmertd build
+
+.. |classifier| replace:: :py:class:`morpheus.classifier.Classifier`
+.. |classify_arrays| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+.. |classify_files| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_files`
 
 .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus
@@ -13,11 +14,8 @@
    :maxdepth: 2
    :caption: Contents:
 
-
 .. include:: ../README.rst
-   :start-line: 22
-
-
+   :start-line: 28
 
 Indices and tables
 ==================
