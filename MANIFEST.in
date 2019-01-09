@@ -1,0 +1,2 @@
+include morpheus/core/model_weights/*
+include morpheus/core/model_config.json
