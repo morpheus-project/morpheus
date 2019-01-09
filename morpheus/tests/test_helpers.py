@@ -424,16 +424,17 @@ class TestLabelHelper:
     @staticmethod
     def test_iterative_rank_vote():
         """Test the iterative_rank_vote method."""
-        shape = (5, 10, 10)
+        shape = (10, 10)
         prev_votes = np.zeros(shape)
 
-        ranks = np.ones((shape[1], shape[2]), dtype=int)
+        ranks = np.zeros(shape, dtype=int)
+        ranks[:, 0] = 4
 
-        update_mask = ranks.copy()
+        update_mask = np.ones(shape)
         votes = LabelHelper.iterative_rank_vote(ranks, prev_votes, update_mask)
 
         expected_votes = prev_votes.copy()
-        expected_votes[1, :, :] = 1
+        expected_votes[:, 0] = 1
 
         all_same = np.equal(expected_votes, votes)
 
@@ -459,11 +460,11 @@ class TestLabelHelper:
     @staticmethod
     def test_make_rank_vote_arrays():
         """Test the make_rank_vote_arrays method."""
-        expected_shape = (5, 100, 100)
+        expected_shape = (100, 100)
         expected_dtype = np.int16
         expected_keys = LabelHelper.MORPHOLOGIES
 
-        outs = LabelHelper.make_rank_vote_arrays(expected_shape[1:])
+        outs = LabelHelper.make_rank_vote_arrays(expected_shape)
 
         for k in expected_keys:
             assert expected_shape == outs[k].shape

@@ -114,11 +114,11 @@ class Classifier:
         j: np.ndarray = None,
         z: np.ndarray = None,
         v: np.ndarray = None,
-        out_dir: str = ".",
+        out_dir: str = None,
         pad: bool = False,
         batch_size: int = 1000,
         out_type: str = "rank_vote",
-    ):
+    ) -> dict:
         """Classify numpy arrays using Morpheus.
 
         Args:
@@ -138,8 +138,7 @@ class Classifier:
                             count. If 'both' record both outputs.
 
         Returns:
-            The classification output of the model as a dict if out_dir is None
-            otherwise None
+            A dictionary containing the output classifications.
 
         Raises:
             ValueError if out_type is not one of ['mean_var', 'rank_vote', 'both']
@@ -150,6 +149,9 @@ class Classifier:
         if out_type not in ["mean_var", "rank_vote", "both"]:
             raise ValueError("Invalid value for `out_type`")
 
+        mean_var = out_type in ["mean_var", "both"]
+        rank_vote = out_type in ["rank_vote", "both"]
+
         if pad:
             raise NotImplementedError("pad=True has not been implemented yet")
 
@@ -158,11 +160,11 @@ class Classifier:
         hduls = []
         data = {}
         if out_dir:
-            if out_type in ["mean_var", "both"]:
+            if mean_var:
                 hs, ds = helpers.FitsHelper.create_mean_var_files(shape, out_dir)
                 hduls.extend(hs)
                 data.update(ds)
-            if out_type in ["rank_vote", "both"]:
+            if rank_vote:
                 hs, ds = helpers.FitsHelper.create_rank_vote_files(shape, out_dir)
                 hduls.extend(hs)
                 data.update(ds)
@@ -171,9 +173,9 @@ class Classifier:
             hduls.extend(hs)
             ds.update(ds)
         else:
-            if out_type in ["mean_var", "both"]:
+            if mean_var:
                 data.update(helpers.LabelHelper.make_mean_var_arrays(shape))
-            if out_type in ["rank_vote", "both"]:
+            if rank_vote:
                 data.update(helpers.LabelHelper.make_rank_vote_arrays(shape))
 
             data.update(helpers.LabelHelper.make_n_array(shape))
@@ -196,9 +198,11 @@ class Classifier:
                 except StopIteration:
                     break
 
-            combined = [img[y : y + window_y, x : x + window_x] for img in [h, j, v, z]]
-            batch.append(Classifier._standardize_img(combined))
-            batch_idx.append((y, x))
+                combined = np.array(
+                    [img[y : y + window_y, x : x + window_x] for img in [h, j, v, z]]
+                )
+                batch.append(Classifier._standardize_img(combined))
+                batch_idx.append((y, x))
 
             if not batch:
                 break
@@ -211,11 +215,13 @@ class Classifier:
 
             pbar.update()
 
+        if rank_vote:
+            helpers.LabelHelper.finalize_rank_vote(data)
+
         for hdul in hduls:
             hdul.close()
 
-        if out_dir is None:
-            return data
+        return data
 
     @staticmethod
     def _standardize_img(img: np.ndarray) -> np.ndarray:
@@ -297,7 +303,7 @@ class Classifier:
             z (str): the file location of the Z bnad img
 
         Returns:
-            A tuple comtaining the a (List[HDUL], List[np.ndarray])
+            A tuple containing the a (List[HDUL], List[np.ndarray])
 
         Raises:
             ValueError if a variable is None

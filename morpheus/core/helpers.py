@@ -520,10 +520,10 @@ class LabelHelper:
         """
         update = np.zeros_like(prev_count)
 
-        for i in range(update.shape[1]):
-            for j in range(update.shape[2]):
-                if update_mask[i, j]:
-                    update[x_n[i, j], i, j] = 1
+        for i in range(update.shape[0]):
+            for j in range(update.shape[1]):
+                if update_mask[i, j] and (x_n[i, j] == 4):
+                    update[i, j] = 1
 
         count = prev_count + update
 
@@ -598,7 +598,7 @@ class LabelHelper:
     @staticmethod
     def update_rank_vote(
         data: dict, labels: np.ndarray, batch_idx: List[Tuple[int, int]]
-    ):
+    ) -> None:
         """Updates the rank vote values with the new output.
 
         Args:
@@ -617,14 +617,14 @@ class LabelHelper:
             xs = slice(x, x + window_x)
 
             ranked = l.argsort().argsort()
-            for morph in enumerate(LabelHelper.MORPHOLOGIES):
-                prev_count = data[morph][:, ys, xs]
+            for j, morph in enumerate(LabelHelper.MORPHOLOGIES):
+                prev_count = data[morph][ys, xs]
 
                 count = LabelHelper.iterative_rank_vote(
-                    ranked, prev_count, LabelHelper.UPDATE_MASK
+                    ranked[:, :, j], prev_count, LabelHelper.UPDATE_MASK
                 )
 
-                data[morph][:, ys, xs] = count
+                data[morph][ys, xs] = count
 
     @staticmethod
     def update_labels(
@@ -681,7 +681,7 @@ class LabelHelper:
             A dictionary with keys being the arrays description and values being
             the array itself
         """
-        shape = [5, shape[0], shape[1]]
+        shape = [shape[0], shape[1]]
         arrays = {}
 
         for morph in LabelHelper.MORPHOLOGIES:
@@ -701,3 +701,23 @@ class LabelHelper:
             the array itself
         """
         return {"n": np.zeros(shape, dtype=np.int16)}
+
+    @staticmethod
+    def finalize_rank_vote(data: dict) -> None:
+        """Finalize the rank vote by dividing by n.
+
+        Args:
+            data (dict): a dict of numpy arrays containing the data
+
+        TODO: Refactor to accomodate large files
+
+        Returns:
+            None
+        """
+
+        n = data["n"]
+
+        for morph in LabelHelper.MORPHOLOGIES:
+            m = data[morph].copy()
+            m = np.divide(m, n, out=np.zeros_like(m, dtype=np.float32), where=n != 0)
+            data[morph] = m

@@ -32,23 +32,28 @@ class TestExample:
 
     @staticmethod
     def test_sample_data_return():
-        """Tests sample_data function returning array."""
-        arr = example.get_sample()
+        """Tests sample_data function returning arrays."""
+        arrs = example.get_sample()
 
-        expected_shape = (4, 144, 144)
-        assert expected_shape == arr.shape
+        expected_shape = (144, 144)
+        for i in range(4):
+            assert expected_shape == arrs[i].shape
 
     @staticmethod
     def test_sample_data_save():
         """Tests sample_data function saving to file."""
         local = os.path.dirname(os.path.abspath(__file__))
-        out_dir = os.path.join(local, "test.fits")
 
-        example.get_sample(out_dir)
+        example.get_sample(local)
 
-        arr = fits.getdata(out_dir)
+        names = [f"{b}.fits" for b in ["h", "j", "v", "z"]]
 
-        os.remove(out_dir)
+        arrs = []
+        for name in names:
+            f_loc = os.path.join(local, name)
+            arrs.append(fits.getdata(f_loc))
+            os.remove(f_loc)
 
-        expected_shape = (4, 144, 144)
-        assert expected_shape == arr.shape
+        expected_shape = (144, 144)
+        for i in range(4):
+            assert expected_shape == arrs[i].shape

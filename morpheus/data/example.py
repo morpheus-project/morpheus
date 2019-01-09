@@ -21,36 +21,38 @@
 # ==============================================================================
 """Used to fetch data files"""
 
+import os
+from typing import List
 from astropy.io import fits
 import numpy as np
 
 
-def get_sample(out_dir: str = None) -> np.ndarray:
+def get_sample(out_dir: str = None) -> List[np.ndarray]:
     """Retrieves a sample of CANDELS data as an example for classification.
 
     Sample image is taken from CANDELS 1.0 release. The object in the center
-    is GDS_deep2_3622 from Karaltepe et. al (2015). The data has the shape
-    [4, 144, 144], where the first dimension represents the H, J, V, and Z bands
-    in that order. The data is raw and there is no Header data.
+    is GDS_deep2_3622 from Karaltepe et. al (2015).
 
     Data can be manually downlaoded from:
 
     https://drive.google.com/uc?export=download&id=1fFGUVOVMOGLG4ptgAZv0T9Woimr653kn
 
     Args:
-        out_dir (str): a str location to save the FITS file, if None returns the
-                       numpy array.
+        out_dir (str): if not None the location to save the data at.
 
     Returns:
-        The numpy array if out_dir is None, otherwise None
+        A list of numpy arrays containing the H, J, V, and Z bands in that order
 
     """
     # Got direct link format from: https://www.labnol.org/internet/direct-links-for-google-drive/28356/
     url = "https://drive.google.com/uc?export=download&id=1fFGUVOVMOGLG4ptgAZv0T9Woimr653kn"
 
-    data = fits.getdata(url)
+    raw_data = fits.getdata(url)
+    bands = [raw_data[i] for i in range(4)]
 
     if out_dir:
-        fits.PrimaryHDU(data=data).writeto(out_dir)
-    else:
-        return data
+        for name, data in zip(["h", "j", "v", "z"], bands):
+            out_path = os.path.join(out_dir, f"{name}.fits")
+            fits.PrimaryHDU(data=data).writeto(out_path)
+
+    return bands
