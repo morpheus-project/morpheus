@@ -15,7 +15,7 @@ from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = "morpheus-astro"
-DESCRIPTION = "Morphologically encoded segmentation maps."
+DESCRIPTION = "A Library For Generating Morphological Semantic Segmentation Maps of Astronomical Images"
 URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
@@ -107,11 +107,15 @@ setup(
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: Implementation :: PyPy",
+        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Science/Research",
+        "Development Status :: 4 - Beta",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: Scientific/Engineering",
     ],
     # $ setup.py publish support.
     # cmdclass={"upload": UploadCommand},

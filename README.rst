@@ -66,6 +66,7 @@ and the values are the corresponding numpy arrays.
 .. code-block:: python
 
     from morpheus.classifier import Classifier
+    from morpheus.data import example
 
     # this saves the sample numpy arrays as FITS files in 'out_dir'
     example.get_sample(out_dir='.')
@@ -80,6 +81,7 @@ into memory. If an image is too large to fit into memory, then specify the
 .. code-block:: python
 
     from morpheus.classifier import Classifier
+    from morpheus.data import example
 
     # this saves the sample numpy arrays as fits files in 'out_dir'
     example.get_sample(out_dir='.')

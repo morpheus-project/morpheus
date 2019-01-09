@@ -65,7 +65,3 @@ class TestIntegration:
             np.testing.assert_allclose(
                 outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
             )
-
-
-if __name__ == "__main__":
-    TestIntegration.test_classify_image()
