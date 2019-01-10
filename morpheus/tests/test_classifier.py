@@ -28,6 +28,7 @@ import imageio
 from astropy.io import fits
 
 from morpheus.classifier import Classifier
+from morpheus.data import example
 
 
 @pytest.mark.unit
@@ -43,6 +44,12 @@ class TestClassifier:
             "no_hidden": imageio.imread(expected_no_hidden_url),
             "hidden": imageio.imread(expected_hidden_url),
         }
+
+    @staticmethod
+    def get_expected_segmap():
+        expected_segmap_url = "https://drive.google.com/uc?export=download&id=1Trj5oyaIKqiJppBsACKF3nKMf3furVls"
+
+        return {"segmap": fits.getdata(expected_segmap_url)}
 
     @staticmethod
     def get_expected_output():
@@ -159,3 +166,18 @@ class TestClassifier:
         actual_color = (actual_color * 255).astype(np.uint8)
 
         np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_make_segmap():
+        """Test make_segmap method."""
+
+        data = TestClassifier.get_expected_output()
+        h, j, v, z = example.get_sample()
+        mask = np.zeros_like(h, dtype=np.int)
+        mask[5:-5, 5:-5] = 1
+
+        expected_segmap = TestClassifier.get_expected_segmap()["segmap"]
+
+        actual_segmap = Classifier.make_segmap(data, h, mask=mask)
+
+        np.testing.assert_array_equal(expected_segmap, actual_segmap)
