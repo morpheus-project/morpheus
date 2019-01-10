@@ -23,15 +23,18 @@
 import os
 import time
 from subprocess import Popen
-from typing import List
-from typing import Tuple
-from typing import Iterable
+from typing import Iterable, List, Tuple
 
 import imageio
 import numpy as np
 import tensorflow as tf
 from astropy.io import fits
 from matplotlib.colors import hsv_to_rgb
+from scipy import ndimage as ndi
+from skimage.feature import peak_local_max
+from skimage.filters import sobel
+from skimage.measure import regionprops
+from skimage.morphology import watershed
 from tqdm import tqdm
 
 import morpheus.core.helpers as helpers
@@ -614,3 +617,149 @@ class Classifier:
             imageio.imwrite(os.path.join(out_dir, "colorized.png"), png)
 
         return rgb
+
+    @staticmethod
+    def make_segmap(
+        data: dict,
+        h: np.ndarray,
+        out_dir: str = None,
+        psf_r: int = 14,
+        mask: np.ndarray = None,
+        deblend: bool = True,
+    ) -> np.ndarray:
+        """Generate a segmentation map from the classification output.
+
+            Segmentation maps are generated using the background classification
+            in ``data``. The segmenatation maps are generated using the
+            `watershed algorithm <https://en.wikipedia.org/wiki/Watershed_(image_processing)>`_
+            in conjunction with a couple heuristics for simple deblending. The
+            steps to generate the segmentation map are as follows:
+
+            **Inputs**: Background pixel classifications *b* and H band flux *h*
+
+            **Outpus**: A segmentation map *sm*
+
+            **Algorithm**:
+
+            1. Initial Segementation
+
+            :math:`psf_r` = The radius of the PSF for the instrument used in H band
+
+            *m* = a zero matrix, same size as *b*
+
+            FOR :math:`m_{ij}` in *m*
+
+                IF :math:`b_{ij}==1` THEN :math:`m_{ij}=1`
+
+                ELSE IF :math:`b_{ij}==0` THEN :math:`m_{ij}=2`
+
+            *s* = `sobel <https://en.wikipedia.org/wiki/Sobel_operator>`_ (*b*)
+
+            *sm* = apply waterhshed on *s* with markers *m*
+
+            2. Simple Deblending
+
+            FOR EACH contiguous set of source pixels *p* in *sm* and corresponding flux set *f* in *h*
+
+                Assign a unique id to *p*
+
+                *mx* = :math:`\\max(f)`
+
+                *pm* = pixels in *p* that are at least :math:`\\frac{mx}{10}` AND at least a :math:`psf_r` apart.
+
+                IF there are more than 2 pixels *pm*
+
+                    *pwm* = apply watershed on :math:`-1 * f` with markers *pm*
+
+                    Assign unique ids to the contiguous sets of pixels in *pwm*
+
+            RETURN *sm*
+
+        Args:
+            data (dict): A dictionary containing the output from morpheus.
+            h (np.ndarray): The H band image that was classified.
+            out_dir (str): A path to save the segmap in.
+            psf_r (int): The radius of the PSF for the instrument used on H band
+            mask (np.ndarry): A boolean mask indicating which pixels
+            deblend (bool): If ``True``, perform delblending as described in 2.
+                            in the algorithm description. If ``False`` return
+                            segmap without deblending.
+
+        Returns:
+            A np.ndarray segmentation map
+        """
+        bkg = data["background"]
+        markers = np.zeros_like(h, dtype=np.uint8)
+
+        print("Building Markers...")
+        if mask is None:
+            markers[bkg == 1] = 1
+            markers[bkg == 0] = 2
+        else:
+            is_bkg = np.logical_and(bkg == 1, mask)
+            is_src = np.logical_and(bkg == 0, mask)
+
+            markers[is_bkg] = 1
+            markers[is_src] = 2
+
+        sobel_img = sobel(bkg)
+
+        print("Watershedding...")
+        segmented = watershed(sobel_img, markers, mask=mask) - 1
+
+        if mask is not None:
+            segmented[mask == 0] = 0
+
+        labeled, _ = ndi.label(segmented)
+
+        if deblend:
+            labeled = Classifier._deblend(labeled, h, psf_r)
+
+        if out_dir:
+            fits.PrimaryHDU(data=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
+
+        return labeled
+
+    @staticmethod
+    def _deblend(segmap: np.ndarray, flux: np.ndarray, psf_r: int) -> np.ndarray:
+        """Deblends a segmentation map according to the description in make_segmap.
+
+        Args:
+            segmap (np.ndarray): The segmentation map image to deblend
+            flux (np.ndarray): The corresponding flux image in H band
+            psf_r (int): The radius of the PSF for the instrument used on H band
+
+        Returns:
+            A np.ndarray representing the deblended segmap
+        """
+
+        max_id = segmap.max()
+
+        for region in tqdm(regionprops(segmap, flux), desc="Deblending"):
+
+            # greater than 1 indicates that the region is not background
+            if region.label > 1:
+                flx = region.intensity_image
+                seg = region.filled_image
+                flux_map = flx * seg
+
+                maxes = peak_local_max(
+                    flux_map, min_distance=psf_r // 2, threshold_rel=0.1
+                )
+
+                # more than 1 source found, deblend
+                if maxes.shape[0] > 1:
+                    start_y, start_x, end_y, end_x = region.bbox
+                    markers = np.zeros_like(seg, dtype=np.int)
+
+                    for y, x in maxes:
+                        max_id += 1
+                        markers[y, x] = max_id
+
+                    deblended = watershed(-flux_map, markers, mask=seg)
+
+                    local_segmap = segmap[start_y:end_y, start_x:end_x].copy()
+                    local_segmap = np.where(seg, deblended, local_segmap)
+                    segmap[start_y:end_y, start_x:end_x] = local_segmap
+
+        return segmap

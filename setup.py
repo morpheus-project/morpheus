@@ -31,6 +31,8 @@ REQUIRED = [
     "tqdm",
     "matplotlib",
     "imageio",
+    "scikit-image",
+    "scipy",
 ]
 
 # What packages are optional?

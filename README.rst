@@ -108,6 +108,11 @@ stitched back together.
 
     Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir='.', gpus=gpus)
 
+Demo
+=============
+Try it out on `Google Colab <https://colab.research.google.com/github/morpheus-project/morpheus/blob/master/examples/example_array.ipynb>`_!
+
+
 Documentation
 =============
 
