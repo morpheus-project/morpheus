@@ -27,10 +27,12 @@ from typing import List
 from typing import Tuple
 from typing import Iterable
 
+import imageio
 import numpy as np
 import tensorflow as tf
-from tqdm import tqdm
 from astropy.io import fits
+from matplotlib.colors import hsv_to_rgb
+from tqdm import tqdm
 
 import morpheus.core.helpers as helpers
 import morpheus.core.model as model
@@ -538,3 +540,77 @@ class Classifier:
                     is_running[i] = False
 
             time.sleep(parallel_check_interval * 60)
+
+    @staticmethod
+    def colorize_rank_vote_output(
+        data: dict, out_dir: str = None, hide_unclassified: bool = True
+    ) -> np.ndarray:
+        """Makes a color images from the rank_vote classification output.
+
+        The colorization scheme is defined in HSV and is as follows:
+
+        * Spheroid = Red
+        * Disk = Blue
+        * Irregular = Green
+        * Point Source = Yellow
+
+        The hue is set to be the color associated with the highest ranked class
+        for a given pixel. The saturation is set to be difference between the
+        highest ranked class and the second highest ranked class for a given
+        pixel. For example if the top two classes have nearly equal values given
+        by the classifier, then the saturation will be low and the pixel will
+        appear more white. If the the top two classes have very different
+        values, then the saturation will be high and the pixel's color will be
+        vibrant and not white. The value for a pixel is set to be 1-bkg, where
+        bkg is value given to the background class. If the background class has
+        a high value, then the pixel will appear more black. If the background
+        value is low, then the pixel will take on the color given by the hue and
+        saturation values.
+
+        Args:
+            data (dict): A dictionary containing the output from morpheus.
+            out_dir (str): a path to save the image in.
+            hide_unclassified (bool): If true black out the edges of the image
+                                      that are unclassified. If false, show the
+                                      borders as white.
+
+        Returns:
+            A [width, height, 3] array representing the RGB image.
+        """
+        red = 0.0  # spheroid
+        blue = 0.7  # disk
+        yellow = 0.18  # point source
+        green = 0.3  # irregular
+
+        shape = data["n"].shape
+
+        colors = np.array([red, blue, green, yellow])
+        morphs = np.dstack([data[i] for i in helpers.LabelHelper.MORPHOLOGIES[:-1]])
+        ordered = np.argsort(-morphs, axis=-1)
+
+        hues = np.zeros(shape)
+        sats = np.zeros(shape)
+        vals = 1 - data["background"]
+
+        # the classifier doesn't return values for this area so black it out
+        if hide_unclassified:
+            vals[0:5, :] = 0
+            vals[-5:, :] = 0
+            vals[:, 0:5] = 0
+            vals[:, -5:] = 0
+
+        for i in tqdm(range(shape[0])):
+            for j in range(shape[1]):
+                hues[i, j] = colors[ordered[i, j, 0]]
+                sats[i, j] = (
+                    morphs[i, j, ordered[i, j, 0]] - morphs[i, j, ordered[i, j, 1]]
+                )
+
+        hsv = np.dstack([hues, sats, vals])
+        rgb = hsv_to_rgb(hsv)
+
+        if out_dir:
+            png = (rgb * 255).astype(np.uint8)
+            imageio.imwrite(os.path.join(out_dir, "colorized.png"), png)
+
+        return rgb
