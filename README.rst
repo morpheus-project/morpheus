@@ -33,7 +33,7 @@ Installation
 ============
 
 Morpheus is implemented using `Tensorflow <https://www.tensorflow.org/>`_.
-It listed in the dependecies for the package. If you want to use
+Tensorflow is listed in the dependecies for the package. If you want to use
 an accelerated version of Tensorflow, for example, to take advantage of GPU
 acceleration, then be sure to install it before you install Morpheus.
 
@@ -91,7 +91,7 @@ into memory. If an image is too large to fit into memory, then specify the
 
 If you're classifying a large image and have multiple NVIDIA GPUs on the same
 machine available the image can be classified in parallel using the ``gpus``
-argument. The image split evenly along the first dimension and then handed off
+argument. The image split evenly along the first axis and then handed off
 to subprocess to classify the subset of the image, after which, the image is
 stitched back together.
 
@@ -107,6 +107,11 @@ stitched back together.
     gpus = [0, 1]
 
     Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir='.', gpus=gpus)
+
+Demo
+=============
+Try it out on `Google Colab <https://colab.research.google.com/github/morpheus-project/morpheus/blob/master/examples/example_array.ipynb>`_!
+
 
 Documentation
 =============

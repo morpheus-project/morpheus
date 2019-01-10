@@ -24,13 +24,50 @@ import os
 
 import pytest
 import numpy as np
+import imageio
+from astropy.io import fits
 
 from morpheus.classifier import Classifier
+from morpheus.data import example
 
 
 @pytest.mark.unit
 class TestClassifier:
     """Tests morpheus.classifier.Classifier"""
+
+    @staticmethod
+    def get_expected_pngs():
+        expected_no_hidden_url = "https://drive.google.com/uc?export=download&id=1uGl6HOxVMa1L2-jU6kHhtz65hTX3-M1L"
+        expected_hidden_url = "https://drive.google.com/uc?export=download&id=18CI48-ko8msRhkvVngvBWRvxL1fH3mE0"
+
+        return {
+            "no_hidden": imageio.imread(expected_no_hidden_url),
+            "hidden": imageio.imread(expected_hidden_url),
+        }
+
+    @staticmethod
+    def get_expected_segmap():
+        expected_segmap_url = "https://drive.google.com/uc?export=download&id=1Trj5oyaIKqiJppBsACKF3nKMf3furVls"
+
+        return {"segmap": fits.getdata(expected_segmap_url)}
+
+    @staticmethod
+    def get_expected_output():
+        expected_spheroid_url = "https://drive.google.com/uc?export=download&id=1nlGqibesE1LnEEif0oj-RO8xR4qNAFnP"
+        expected_disk_url = "https://drive.google.com/uc?export=download&id=1btsoZZJu9qWkVn0rzIK9emgdMe6mMcHS"
+        expected_irregular_url = "https://drive.google.com/uc?export=download&id=1qtXphVp7VflFBDWFjn6AJdvI1j3sN4KR"
+        expected_point_source_url = "https://drive.google.com/uc?export=download&id=16bFNlZvD_EmAMSpCU-DZ_Shq3FMpXgp3"
+        expected_background_url = "https://drive.google.com/uc?export=download&id=1xp6NC00T3JykdOwz0c8EFeJG0vdsThSW"
+        expected_n_url = "https://drive.google.com/uc?export=download&id=1I5IasDPGyDmMaXN4NCwLh27X_OuxYiPv"
+
+        return {
+            "spheroid": fits.getdata(expected_spheroid_url),
+            "disk": fits.getdata(expected_disk_url),
+            "irregular": fits.getdata(expected_irregular_url),
+            "point_source": fits.getdata(expected_point_source_url),
+            "background": fits.getdata(expected_background_url),
+            "n": fits.getdata(expected_n_url),
+        }
 
     @staticmethod
     def test_variables_not_none():
@@ -99,3 +136,48 @@ class TestClassifier:
 
         with pytest.raises(ValueError):
             Classifier._variables_not_none(["good", "bad"], [1, None])
+
+    @staticmethod
+    def test_colorize_rank_vote_output():
+        """Test colorize_rank_vote_output."""
+
+        data = TestClassifier.get_expected_output()
+        expected_color = TestClassifier.get_expected_pngs()["no_hidden"]
+
+        actual_color = Classifier.colorize_rank_vote_output(
+            data, hide_unclassified=False
+        )
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_colorize_rank_vote_output_hidden():
+        """Test colorize_rank_vote_output with hiding."""
+
+        data = TestClassifier.get_expected_output()
+        expected_color = TestClassifier.get_expected_pngs()["hidden"]
+
+        actual_color = Classifier.colorize_rank_vote_output(
+            data, hide_unclassified=True
+        )
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_make_segmap():
+        """Test make_segmap method."""
+
+        data = TestClassifier.get_expected_output()
+        h, _, _, _ = example.get_sample()
+        mask = np.zeros_like(h, dtype=np.int)
+        mask[5:-5, 5:-5] = 1
+
+        expected_segmap = TestClassifier.get_expected_segmap()["segmap"]
+
+        actual_segmap = Classifier.make_segmap(data, h, mask=mask)
+
+        np.testing.assert_array_equal(expected_segmap, actual_segmap)
