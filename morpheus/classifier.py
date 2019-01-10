@@ -44,6 +44,19 @@ import morpheus.core.model as model
 class Classifier:
     """Primary interface for the use of Morpheus.
 
+    Images can be classified by calling
+    :py:meth:`~morpheus.classifier.Classifier.classify_arrays` and passing
+    numpy arrays or by calling
+    :py:meth:`~morpheus.classifier.Classifier.classify_files` and passing string
+    FITS file locations.
+
+    After an image this this class offers some post processing functionality by
+    generating segmentation maps using
+    :py:meth:`~morpheus.classifier.Classifier.make_segmap` and colorized
+    morphological classifications using
+    :py:meth:`~morpheus.classifier.Classifier.colorize_rank_vote_output`
+
+    For more examples see the `documentation <https://morpheus-astro.readthedocs.io/>`_.
     """
 
     __graph = None

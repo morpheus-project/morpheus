@@ -172,7 +172,7 @@ class TestClassifier:
         """Test make_segmap method."""
 
         data = TestClassifier.get_expected_output()
-        h, j, v, z = example.get_sample()
+        h, _, _, _ = example.get_sample()
         mask = np.zeros_like(h, dtype=np.int)
         mask[5:-5, 5:-5] = 1
 
