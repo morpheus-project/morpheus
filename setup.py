@@ -24,7 +24,7 @@ VERSION = "0.2.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "numpy",
+    "numpy<1.16", # remove retriction once skimage >= 14.2
     "colorama",
     "astropy",
     "tensorflow",
