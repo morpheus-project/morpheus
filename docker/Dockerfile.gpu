@@ -1,0 +1,25 @@
+# Adapted from https://github.com/samuelcolvin/tensorflow-gpu-py36/blob/master/Dockerfile
+# This should be much easier after tensorflow support python 3.6 with CUDA 10
+
+FROM nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04
+
+LABEL maintainer 'rhausen@ucsc.edu'
+
+# get python 3.6
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        software-properties-common \
+        python3-pip \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y python3.6 python3.6-dev
+
+RUN python3.6 -m pip install --no-cache-dir -U pip
+RUN python3.6 -m pip install --no-cache-dir -U setuptools
+RUN python3.6 -m pip install --no-cache-dir -U numpy==1.15
+RUN python3.6 -m pip install --no-cache-dir -U tensorflow-gpu
+RUN python3.6 -m pip install --no-cache-dir -U morpheus-astro
+
+RUN ln -s /usr/bin/python3.6 /usr/bin/python
