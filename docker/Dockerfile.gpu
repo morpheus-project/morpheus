@@ -1,7 +1,7 @@
 # Adapted from https://github.com/samuelcolvin/tensorflow-gpu-py36/blob/master/Dockerfile
 # This should be much easier after tensorflow support python 3.6 with CUDA 10
 
-FROM nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
 
 LABEL maintainer 'rhausen@ucsc.edu'
 
