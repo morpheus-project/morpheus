@@ -33,13 +33,37 @@ Installation
 ============
 
 Morpheus is implemented using `Tensorflow <https://www.tensorflow.org/>`_.
-Tensorflow is listed in the dependecies for the package. If you want to use
-an accelerated version of Tensorflow, for example, to take advantage of GPU
-acceleration, then be sure to install it before you install Morpheus.
+Tensorflow is **not** listed in the dependecies for the package. So you need to
+install Tensorflow before you install Morpheus. It has to be done this way
+to support the GPU accelerated version of Tensorflow, which has a different
+package name. For more information on installing Tensorflow visit the
+`Tensorflow website <https://www.tensorflow.org/install/>`_.
+
 
 .. code-block:: bash
 
     pip install morpheus-astro
+
+Docker
+======
+
+Morpheus has two main flavors of Docker Image: ``gpu`` for the GPU enabled version
+of Tensorflow and ``cpu`` for the standard CPU implementation of Tensorflow.
+Visit the `Docker Hub <https://hub.docker.com/r/morpheusastro/morpheus>`_ page
+for relevant tags.
+
+For GPU support:
+
+.. code-block:: bash
+
+    docker run --runtime=nvidia -it morpheusastro/morpheus:0.2-gpu
+
+For CPU only:
+
+.. code-block:: bash
+
+    docker run -it morpheusastro/morpheus:0.2-cpu
+
 
 Usage
 =====
