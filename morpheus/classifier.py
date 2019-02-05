@@ -64,6 +64,87 @@ class Classifier:
     __X = tf.placeholder(tf.float32, shape=[None, 40, 40, 4])
 
     @staticmethod
+    def catalog_arrays(
+        h: str = None,
+        j: str = None,
+        z: str = None,
+        v: str = None,
+        out_dir: str = None,
+        pad: bool = False,
+        batch_size: int = 1000,
+        out_type: str = None,
+        segmap_mask: np.ndarray = None,
+    ) -> dict:
+        """Generate a source catalog using Morpheus.
+
+        This method generates a catalog of the sources in the array. It is a 
+        convenience method that combines the other methods into a single action.
+        The following operations are performed:
+
+        1. The input image is classified using 
+           :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+        2. The classification is used to generate a segmentation map using
+           :py:meth:`~morpheus.classifier.Classifier.make_segmap`
+        3. The the segmentation maps and the classification output are combined
+           to create aggregate morphological classfifications for each source 
+           in the segmentation map
+           
+
+        Args:
+            h (np.ndarray): the H band values for an image
+            j (np.ndarray): the J band values for an image
+            z (np.ndarray): the Z band values for an image
+            v (np.ndarray): the V band values for an iamge
+            out_dir (str): The location where to save the output files
+                           if None returns the output in memory only.
+            pad (bool): if True pad the input with zeros, so that every pixel is
+                        classified the same number of times. If False, don't pad.
+                        (Not implemented)
+            batch_size (int): the number of image sections to process at a time
+            out_type (str): how to process the output from Morpheus. If
+                            'mean_var' record output using mean and variance, If
+                            'rank_vote' record output as the normaized vote
+                            count. If 'both' record both outputs.
+            segmap_mask (np.ndarray): a boolean mask that indicates all valid 
+                                      pixels in the images. If None, all pixels
+                                      are considered valid.
+
+        Returns:
+            A dictionary containing the catalog of the classification output
+            and the associated catalog. The dictionary contains the following
+            keys: [
+                'classifier_output', // The output from :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+                'segmentation_map', // The output from :py:meth:`~morpheus.classifier.Classifier.make_segmap`
+                'catalog' // A list of dictionary objects containing the catalog
+            ]
+
+        Raises:
+            ValueError if out_type is not one of ['mean_var', 'rank_vote', 'both']
+        """
+        classified = Classifier.classify_arrays(
+            h=h,
+            j=j,
+            v=v,
+            z=z,
+            out_dir=out_dir,
+            pad=pad,
+            batch_size=batch_size,
+            out_type=out_type,
+        )
+
+        segmap = Classifier.make_segmap(
+            data=classified, h=h, out_dir=out_dir, psf_r=20, mask=segmap_mask
+        )
+
+        # add catalog here
+
+        return {
+            "classifier_output": classified,
+            "segmentation_map": segmap,
+            # catalog
+        }
+
+    @staticmethod
     def classify_files(
         h: str = None,
         j: str = None,
@@ -76,7 +157,7 @@ class Classifier:
         gpus: List[int] = None,
         parallel_check_interval: int = 15,
     ) -> None:
-        """Classify FITS files using morpheus.
+        """Classify FITS files using Morpheus.
 
         Args:
             h (str): The file location of the H band FITS file
