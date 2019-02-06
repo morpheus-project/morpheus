@@ -65,3 +65,11 @@ class TestIntegration:
             np.testing.assert_allclose(
                 outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
             )
+
+    @staticmethod
+    def test_make_catalog():
+        """User level catalog."""
+
+        h, j, v, z = example.get_sample()
+
+        catalog = Classifier.catalog_arrays(h=h, j=j, z=z, v=v)

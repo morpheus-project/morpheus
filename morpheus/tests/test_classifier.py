@@ -47,7 +47,7 @@ class TestClassifier:
 
     @staticmethod
     def get_expected_segmap():
-        expected_segmap_url = "https://drive.google.com/uc?export=download&id=1Trj5oyaIKqiJppBsACKF3nKMf3furVls"
+        expected_segmap_url = "https://drive.google.com/uc?export=download&id=178875Cznj1FCsVrUcJFjm80hiG3aCQ_m"
 
         return {"segmap": fits.getdata(expected_segmap_url)}
 
