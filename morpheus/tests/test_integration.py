@@ -21,35 +21,18 @@
 # ==============================================================================
 """Integration tests for Morpheus"""
 
-from astropy.io import fits
 import numpy as np
 import pytest
 
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
+import morpheus.tests.data_helper as dh
+
 
 @pytest.mark.integration
 class TestIntegration:
-    """User level integration tests"""
-
-    @staticmethod
-    def get_expected_output():
-        expected_spheroid_url = "https://drive.google.com/uc?export=download&id=1nlGqibesE1LnEEif0oj-RO8xR4qNAFnP"
-        expected_disk_url = "https://drive.google.com/uc?export=download&id=1btsoZZJu9qWkVn0rzIK9emgdMe6mMcHS"
-        expected_irregular_url = "https://drive.google.com/uc?export=download&id=1qtXphVp7VflFBDWFjn6AJdvI1j3sN4KR"
-        expected_point_source_url = "https://drive.google.com/uc?export=download&id=16bFNlZvD_EmAMSpCU-DZ_Shq3FMpXgp3"
-        expected_background_url = "https://drive.google.com/uc?export=download&id=1xp6NC00T3JykdOwz0c8EFeJG0vdsThSW"
-        expected_n_url = "https://drive.google.com/uc?export=download&id=1I5IasDPGyDmMaXN4NCwLh27X_OuxYiPv"
-
-        return {
-            "spheroid": fits.getdata(expected_spheroid_url),
-            "disk": fits.getdata(expected_disk_url),
-            "irregular": fits.getdata(expected_irregular_url),
-            "point_source": fits.getdata(expected_point_source_url),
-            "background": fits.getdata(expected_background_url),
-            "n": fits.getdata(expected_n_url),
-        }
+    """User level integration tests."""
 
     @staticmethod
     def test_classify_image():
@@ -57,7 +40,7 @@ class TestIntegration:
 
         h, j, v, z = example.get_sample()
 
-        expected_outs = TestIntegration.get_expected_output()
+        expected_outs = dh.get_expected_morpheus_output()
 
         outs = Classifier.classify_arrays(h=h, j=j, v=v, z=z, out_dir=None)
 
@@ -73,3 +56,21 @@ class TestIntegration:
         h, j, v, z = example.get_sample()
 
         catalog = Classifier.catalog_arrays(h=h, j=j, z=z, v=v)
+
+        expected_catalog = dh.get_expected_catalog()
+
+        def element_equal(val, exp_val):
+            if isinstance(val, int):
+                assert val == exp_val
+            if isinstance(val, float):
+                np.testing.assert_almost_equal(val, exp_val)
+            if isinstance(val, list):
+                assert len(val) == len(exp_val)
+
+                for v, e in zip(val, exp_val):
+                    element_equal(v, e)
+
+        assert catalog.keys() == expected_catalog.keys()
+
+        for k in catalog:
+            element_equal(catalog[k], expected_catalog[k])

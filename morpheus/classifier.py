@@ -74,6 +74,8 @@ class Classifier:
         batch_size: int = 1000,
         out_type: str = "rank_vote",
         segmap_mask: np.ndarray = None,
+        return_segmap: bool = False,
+        return_morphological_map: bool = False,
     ) -> Dict:
         """Generate a source catalog using Morpheus.
 
@@ -95,7 +97,7 @@ class Classifier:
             j (np.ndarray): the J band values for an image
             z (np.ndarray): the Z band values for an image
             v (np.ndarray): the V band values for an iamge
-            out_dir (str): The location where to save the output files
+            out_dir (str): the location where to save the output files
                            if None returns the output in memory only.
             pad (bool): if True pad the input with zeros, so that every pixel is
                         classified the same number of times. If False, don't pad.
@@ -108,6 +110,11 @@ class Classifier:
             segmap_mask (np.ndarray): a boolean mask that indicates all valid
                                       pixels in the images. If None, all pixels
                                       are considered valid.
+            return_segmap (bool): if `True` include the segmentation map in the
+                                  returned dictionary with the key `segmentation_map`
+            return_morphological_map (bool): if `True` include the morhological
+                                             output maps for the input in the returned
+                                             dictionary with the key `morphological_map`
 
         Returns:
             A dictionary containing the catalog of the classification output
@@ -139,11 +146,14 @@ class Classifier:
         # add catalog here
         catalog = Classifier.make_catalog(data=classified, flux=h, segmap=segmap)
 
-        return {
-            "classifier_output": classified,
-            "segmentation_map": segmap,
-            "catalog": catalog,
-        }
+        outs = {"catalog": catalog}
+
+        if return_segmap:
+            outs["segmentation_map"] = segmap
+        if return_morphological_map:
+            outs["morphological_map"] = classified
+
+        return outs
 
     @staticmethod
     def classify_files(
@@ -912,7 +922,7 @@ class Classifier:
                                        in
 
         Returns:
-            A list of dictionary objects with the following keys:
+            A JSON-compatible list of dictionary objects with the following keys:
             {
                 'id': the id from the segmap
                 'location': a (y,x) location -- the max pixel within the segmap
@@ -945,7 +955,7 @@ class Classifier:
 
             # https://stackoverflow.com/a/3584260
             local_y, local_x = np.unravel_index(masked_flux.argmax(), masked_flux.shape)
-            global_y, global_x = start_y + local_y, start_x + local_x
+            global_y, global_x = int(start_y + local_y), int(start_x + local_x)
 
             catalog.append(
                 {
