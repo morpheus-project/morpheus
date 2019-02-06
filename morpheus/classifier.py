@@ -23,7 +23,7 @@
 import os
 import time
 from subprocess import Popen
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, Callable, Dict
 
 import imageio
 import numpy as np
@@ -64,6 +64,98 @@ class Classifier:
     __X = tf.placeholder(tf.float32, shape=[None, 40, 40, 4])
 
     @staticmethod
+    def catalog_arrays(
+        h: str = None,
+        j: str = None,
+        z: str = None,
+        v: str = None,
+        out_dir: str = None,
+        pad: bool = False,
+        batch_size: int = 1000,
+        out_type: str = "rank_vote",
+        segmap_mask: np.ndarray = None,
+        return_segmap: bool = False,
+        return_morphological_map: bool = False,
+    ) -> Dict:
+        """Generate a source catalog using Morpheus.
+
+        This method generates a catalog of the sources in the array. It is a
+        convenience method that combines the other methods into a single action.
+        The following operations are performed:
+
+        1. The input image is classified using
+           :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+        2. The classification is used to generate a segmentation map using
+           :py:meth:`~morpheus.classifier.Classifier.make_segmap`
+        3. The the segmentation maps and the classification output are combined
+           to create aggregate morphological classfifications for each source
+           in the segmentation map
+
+
+        Args:
+            h (np.ndarray): the H band values for an image
+            j (np.ndarray): the J band values for an image
+            z (np.ndarray): the Z band values for an image
+            v (np.ndarray): the V band values for an iamge
+            out_dir (str): the location where to save the output files
+                           if None returns the output in memory only.
+            pad (bool): if True pad the input with zeros, so that every pixel is
+                        classified the same number of times. If False, don't pad.
+                        (Not implemented)
+            batch_size (int): the number of image sections to process at a time
+            out_type (str): how to process the output from Morpheus. If
+                            'mean_var' record output using mean and variance, If
+                            'rank_vote' record output as the normaized vote
+                            count. If 'both' record both outputs.
+            segmap_mask (np.ndarray): a boolean mask that indicates all valid
+                                      pixels in the images. If None, all pixels
+                                      are considered valid.
+            return_segmap (bool): if `True` include the segmentation map in the
+                                  returned dictionary with the key `segmentation_map`
+            return_morphological_map (bool): if `True` include the morhological
+                                             output maps for the input in the returned
+                                             dictionary with the key `morphological_map`
+
+        Returns:
+            A dictionary containing the catalog of the classification output
+            and the associated catalog. The dictionary contains the following
+            keys: [
+                'classifier_output', // The output from :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+                'segmentation_map', // The output from :py:meth:`~morpheus.classifier.Classifier.make_segmap`
+                'catalog' // A list of dictionary objects containing the catalog
+            ]
+
+        Raises:
+            ValueError if out_type is not one of ['mean_var', 'rank_vote', 'both']
+        """
+        classified = Classifier.classify_arrays(
+            h=h,
+            j=j,
+            v=v,
+            z=z,
+            out_dir=out_dir,
+            pad=pad,
+            batch_size=batch_size,
+            out_type=out_type,
+        )
+
+        segmap = Classifier.make_segmap(
+            data=classified, h=h, out_dir=out_dir, psf_r=20, mask=segmap_mask
+        )
+
+        # add catalog here
+        catalog = Classifier.make_catalog(data=classified, flux=h, segmap=segmap)
+
+        outs = {"catalog": catalog}
+
+        if return_segmap:
+            outs["segmentation_map"] = segmap
+        if return_morphological_map:
+            outs["morphological_map"] = classified
+
+        return outs
+
+    @staticmethod
     def classify_files(
         h: str = None,
         j: str = None,
@@ -76,7 +168,7 @@ class Classifier:
         gpus: List[int] = None,
         parallel_check_interval: int = 15,
     ) -> None:
-        """Classify FITS files using morpheus.
+        """Classify FITS files using Morpheus.
 
         Args:
             h (str): The file location of the H band FITS file
@@ -136,7 +228,7 @@ class Classifier:
         pad: bool = False,
         batch_size: int = 1000,
         out_type: str = "rank_vote",
-    ) -> dict:
+    ) -> Dict:
         """Classify numpy arrays using Morpheus.
 
         Args:
@@ -706,24 +798,23 @@ class Classifier:
 
         print("Building Markers...")
         if mask is None:
-            markers[bkg == 1] = 1
-            markers[bkg == 0] = 2
-        else:
-            is_bkg = np.logical_and(bkg == 1, mask)
-            is_src = np.logical_and(bkg == 0, mask)
+            mask = data["n"] > 0
 
-            markers[is_bkg] = 1
-            markers[is_src] = 2
+        is_bkg = np.logical_and(bkg == 1, mask)
+        is_src = np.logical_and(bkg == 0, mask)
+
+        markers[is_bkg] = 1
+        markers[is_src] = 2
 
         sobel_img = sobel(bkg)
 
         print("Watershedding...")
         segmented = watershed(sobel_img, markers, mask=mask) - 1
-
-        if mask is not None:
-            segmented[mask == 0] = 0
+        segmented[np.logical_not(mask)] = 0
 
         labeled, _ = ndi.label(segmented)
+
+        labeled[np.logical_not(mask)] = -1
 
         if deblend:
             labeled = Classifier._deblend(labeled, h, psf_r)
@@ -734,13 +825,13 @@ class Classifier:
         return labeled
 
     @staticmethod
-    def _deblend(segmap: np.ndarray, flux: np.ndarray, psf_r: int) -> np.ndarray:
+    def _deblend(segmap: np.ndarray, flux: np.ndarray, min_distance: int) -> np.ndarray:
         """Deblends a segmentation map according to the description in make_segmap.
 
         Args:
             segmap (np.ndarray): The segmentation map image to deblend
             flux (np.ndarray): The corresponding flux image in H band
-            psf_r (int): The radius of the PSF for the instrument used on H band
+            min_distance (int): The radius of the PSF for the instrument used on H band
 
         Returns:
             A np.ndarray representing the deblended segmap
@@ -751,13 +842,13 @@ class Classifier:
         for region in tqdm(regionprops(segmap, flux), desc="Deblending"):
 
             # greater than 1 indicates that the region is not background
-            if region.label > 1:
+            if region.label > 0:
                 flx = region.intensity_image
                 seg = region.filled_image
                 flux_map = flx * seg
 
                 maxes = peak_local_max(
-                    flux_map, min_distance=psf_r // 2, threshold_rel=0.1
+                    flux_map, min_distance=min_distance, num_peaks=20
                 )
 
                 # more than 1 source found, deblend
@@ -776,3 +867,102 @@ class Classifier:
                     segmap[start_y:end_y, start_x:end_x] = local_segmap
 
         return segmap
+
+    @staticmethod
+    def aggregation_scheme_flux_weighted(
+        data: dict, flux: np.ndarray, segmap: np.ndarray
+    ) -> List[float]:
+        """Aggreates pixel level morphological classifcations to the source level.
+
+        Uses a flux weighted mean of the pixel level morphologies to calculate
+        the aggregate source level morphology.
+
+        Args:
+            data (dict): A dictionary containing the output from morpheus.
+            flux (np.ndarray): The corresponding flux image in H band
+            segmap (int): The binary map indicating pixels that belong to the
+                          source
+
+        Returns:
+            The morphological classification as a list of floats in the
+            following order: ['spheroid', 'disk', 'irregular', 'point source']
+        """
+        classifications = np.zeros([4])
+
+        morphs = ["spheroid", "disk", "irregular", "point_source"]
+
+        morphs = [data[m] for m in morphs]
+
+        for i, m in enumerate(morphs):
+            classifications[i] = np.mean(m[segmap] * flux[segmap])
+
+        return (classifications / classifications.sum()).tolist()
+
+    @staticmethod
+    def make_catalog(
+        data: dict,
+        flux: np.ndarray,
+        segmap: np.ndarray,
+        aggregation_scheme: Callable = None,
+    ) -> List[Dict]:
+        """Creates a catalog of sources and their morphologies.
+
+        Args:
+            data (dict): A dictionary containing the output from morpheus.
+            flux (np.ndarray): The corresponding flux image in H band
+            segmap (int): A labelled segmap where every pixel with a
+                          value > 0 is associated with a source.
+            aggregation_scheme (func): Function that takes three arguments `data`,
+                                       `flux`, and `segmap`, same as to this
+                                       function, then returns a numpy array
+                                       containing the morphological classification
+                                       in the following order-shperoid, disk,
+                                       irregular, and point source/compact. If
+                                       None, then the flux weighting scheme
+                                       in
+
+        Returns:
+            A JSON-compatible list of dictionary objects with the following keys:
+            {
+                'id': the id from the segmap
+                'location': a (y,x) location -- the max pixel within the segmap
+                'morphology': a dictionary containing the morphology values.
+            }
+        """
+
+        if aggregation_scheme is None:
+            aggregation_scheme = Classifier.aggregation_scheme_flux_weighted
+
+        catalog = []
+
+        for region in regionprops(segmap, flux):
+            _id = region.label
+
+            if _id < 1:
+                continue
+
+            img = region.intensity_image
+            seg = region.filled_image
+
+            start_y, start_x, end_y, end_x = region.bbox
+            dat = {}
+            for k in data:
+                dat[k] = data[k][start_y:end_y, start_x:end_x].copy()
+
+            classification = aggregation_scheme(dat, img, seg)
+
+            masked_flux = img * seg
+
+            # https://stackoverflow.com/a/3584260
+            local_y, local_x = np.unravel_index(masked_flux.argmax(), masked_flux.shape)
+            global_y, global_x = int(start_y + local_y), int(start_x + local_x)
+
+            catalog.append(
+                {
+                    "id": _id,
+                    "location": [global_y, global_x],
+                    "morphology": classification,
+                }
+            )
+
+        return catalog
