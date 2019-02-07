@@ -3,6 +3,7 @@
 .. |classifier| replace:: :py:class:`morpheus.classifier.Classifier`
 .. |classify_arrays| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
 .. |classify_files| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_files`
+.. |catalog_arrays| replace:: :py:meth:`~morpheus.classifier.Classifier.catalog_arrays`
 
 .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus

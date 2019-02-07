@@ -2,6 +2,7 @@
 .. |classifier| replace:: `morpheus.classifier.Classifier <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier>`__
 .. |classify_arrays| replace:: `classify_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_arrays>`__
 .. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`__
+.. |catalog_arrays| replace:: `catalog_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.catalog_arrays>`__
 
 .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
     :target: https://github.com/morpheus-project/morpheus
@@ -33,8 +34,8 @@ Installation
 ============
 
 Morpheus is implemented using `Tensorflow <https://www.tensorflow.org/>`_.
-Tensorflow is **not** listed in the dependecies for the package. So you need to
-install Tensorflow before you install Morpheus. It has to be done this way
+Tensorflow is **not** listed in the dependencies for the package. So you need
+to install Tensorflow before you install Morpheus. It has to be done this way
 to support the GPU accelerated version of Tensorflow, which has a different
 package name. For more information on installing Tensorflow visit the
 `Tensorflow website <https://www.tensorflow.org/install/>`_.
@@ -56,13 +57,13 @@ For GPU support:
 
 .. code-block:: bash
 
-    docker run --runtime=nvidia -it morpheusastro/morpheus:0.2-gpu
+    docker run --runtime=nvidia -it morpheusastro/morpheus:0.3-gpu
 
 For CPU only:
 
 .. code-block:: bash
 
-    docker run -it morpheusastro/morpheus:0.2-cpu
+    docker run -it morpheusastro/morpheus:0.3-cpu
 
 
 Usage
@@ -131,6 +132,20 @@ stitched back together.
     gpus = [0, 1]
 
     Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir='.', gpus=gpus)
+
+Morpheus can also be used to generate a catalog of morphological
+classifications from an input image using |catalog_arrays|. The catalog will
+include an *id*, *location* (in pixels), and a *morphological classification*
+for each source in the following order: [Spheroid, Disk, Irregular, Point
+Source].
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+    from morpheus.data import example
+
+    h, j, v, z = example.get_sample()
+    catalog = Classifier.catalog_arrays(h=h, j=j, v=v, z=z)
 
 Demo
 =============
