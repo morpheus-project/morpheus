@@ -105,7 +105,7 @@ class Classifier:
             batch_size (int): the number of image sections to process at a time
             out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
-                            'rank_vote' record output as the normaized vote
+                            'rank_vote' record output as the normalized vote
                             count. If 'both' record both outputs.
             segmap_mask (np.ndarray): a boolean mask that indicates all valid
                                       pixels in the images. If None, all pixels
@@ -119,11 +119,12 @@ class Classifier:
         Returns:
             A dictionary containing the catalog of the classification output
             and the associated catalog. The dictionary contains the following
-            keys: [
-                'classifier_output', // The output from :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
-                'segmentation_map', // The output from :py:meth:`~morpheus.classifier.Classifier.make_segmap`
-                'catalog' // A list of dictionary objects containing the catalog
-            ]
+            keys:
+
+            - 'classifier_output' The output from :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
+            - 'segmentation_map' The output from :py:meth:`~morpheus.classifier.Classifier.make_segmap`
+            - 'catalog' A list of dictionary objects containing the catalog
+
 
         Raises:
             ValueError if out_type is not one of ['mean_var', 'rank_vote', 'both']
@@ -140,7 +141,7 @@ class Classifier:
         )
 
         segmap = Classifier.make_segmap(
-            data=classified, h=h, out_dir=out_dir, psf_r=20, mask=segmap_mask
+            data=classified, h=h, out_dir=out_dir, min_distance=20, mask=segmap_mask
         )
 
         # add catalog here
@@ -182,13 +183,13 @@ class Classifier:
             batch_size (int): the number of image sections to process at a time
             out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
-                            'rank_vote' record output as the normaized vote
+                            'rank_vote' record output as the normalized vote
                             count. If 'both' record both outputs.
             gpus (List[int]): A list of the CUDA gpu ID's to use for a
                               parallel classification.
             parallel_check_interval (int): If gpus are given, then this is the number
                                            of minutes to wait between polling each
-                                           subprocess for completetion
+                                           subprocess for completion
 
         Returns:
             None
@@ -244,7 +245,7 @@ class Classifier:
             batch_size (int): the number of image sections to process at a time
             out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
-                            'rank_vote' record output as the normaized vote
+                            'rank_vote' record output as the normalized vote
                             count. If 'both' record both outputs.
 
         Returns:
@@ -676,7 +677,7 @@ class Classifier:
         saturation values.
 
         Args:
-            data (dict): A dictionary containing the output from morpheus.
+            data (dict): A dictionary containing the output from Morpheus.
             out_dir (str): a path to save the image in.
             hide_unclassified (bool): If true black out the edges of the image
                                       that are unclassified. If false, show the
@@ -728,7 +729,7 @@ class Classifier:
         data: dict,
         h: np.ndarray,
         out_dir: str = None,
-        psf_r: int = 14,
+        min_distance: int = 20,
         mask: np.ndarray = None,
         deblend: bool = True,
     ) -> np.ndarray:
@@ -746,7 +747,7 @@ class Classifier:
 
             **Algorithm**:
 
-            1. Initial Segementation
+            1. Initial Segmentation
 
             :math:`psf_r` = The radius of the PSF for the instrument used in H band
 
@@ -784,7 +785,7 @@ class Classifier:
             data (dict): A dictionary containing the output from morpheus.
             h (np.ndarray): The H band image that was classified.
             out_dir (str): A path to save the segmap in.
-            psf_r (int): The radius of the PSF for the instrument used on H band
+            min_distance (int): The minimum distance for deblending
             mask (np.ndarry): A boolean mask indicating which pixels
             deblend (bool): If ``True``, perform delblending as described in 2.
                             in the algorithm description. If ``False`` return
@@ -817,7 +818,7 @@ class Classifier:
         labeled[np.logical_not(mask)] = -1
 
         if deblend:
-            labeled = Classifier._deblend(labeled, h, psf_r)
+            labeled = Classifier._deblend(labeled, h, min_distance)
 
         if out_dir:
             fits.PrimaryHDU(data=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
