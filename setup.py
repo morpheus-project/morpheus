@@ -20,7 +20,7 @@ URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
