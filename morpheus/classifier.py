@@ -282,7 +282,7 @@ class Classifier:
 
             hs, ds = helpers.FitsHelper.create_n_file(shape, out_dir)
             hduls.extend(hs)
-            ds.update(ds)
+            data.update(ds)
         else:
             if mean_var:
                 data.update(helpers.LabelHelper.make_mean_var_arrays(shape))
@@ -515,10 +515,7 @@ class Classifier:
             None
         """
 
-        local = os.path.dirname(os.path.abspath(__file__))
         text = [
-            "import sys",
-            f"sys.path.append({local})",
             "import os",
             "import numpy as np",
             "from tqdm import tqdm",
