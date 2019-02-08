@@ -638,7 +638,7 @@ class Classifier:
 
         for gpu in gpus:
             cmd_string = f"CUDA_VISIBLE_DEVICES={gpu} python main.py"
-            sub_dir = os.path.join(out_dir, gpu)
+            sub_dir = os.path.join(out_dir, str(gpu))
             processes[gpu] = Popen(cmd_string, shell=True, cwd=sub_dir)
 
         is_running = np.ones([len(gpus)], dtype=np.bool)
