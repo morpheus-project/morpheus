@@ -519,7 +519,7 @@ class Classifier:
             "import os",
             "import numpy as np",
             "from tqdm import tqdm",
-            "from inference import Classifier",
+            "from morpheus.classifier import Classifier",
             "def main():",
             "    data_dir = '.'",
             "    output_dir = './output'",
