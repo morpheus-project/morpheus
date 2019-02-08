@@ -21,13 +21,15 @@
 # ==============================================================================
 """Integration tests for Morpheus"""
 
+import os
+
 import numpy as np
 import pytest
-
-from morpheus.classifier import Classifier
-from morpheus.data import example
+from astropy.io import fits
 
 import morpheus.tests.data_helper as dh
+from morpheus.classifier import Classifier
+from morpheus.data import example
 
 
 @pytest.mark.integration
@@ -35,8 +37,8 @@ class TestIntegration:
     """User level integration tests."""
 
     @staticmethod
-    def test_classify_image():
-        """User level example classification."""
+    def test_classify_array():
+        """User level example classification of in memory array."""
 
         h, j, v, z = example.get_sample()
 
@@ -48,6 +50,33 @@ class TestIntegration:
             np.testing.assert_allclose(
                 outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
             )
+
+    @staticmethod
+    def test_classify_file():
+        """User level example classification of in memmapped array."""
+
+        out_dir = "tmp"
+        if out_dir not in os.listdir():
+            os.mkdir(out_dir)
+
+        example.get_sample(out_dir=out_dir)
+        h, j, v, z = [os.path.join(out_dir, f"{b}.fits") for b in "hjvz"]
+
+        Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir=out_dir)
+
+        expected_outs = dh.get_expected_morpheus_output()
+
+        for k in expected_outs:
+            actual = fits.getdata(os.path.join(out_dir, f"{k}.fits"))
+            np.testing.assert_allclose(
+                actual, expected_outs[k], err_msg=f"{k} failed comparison"
+            )
+
+        # clean up
+        for f in os.listdir(out_dir):
+            os.remove(os.path.join(out_dir, f))
+
+        os.rmdir(out_dir)
 
     @staticmethod
     def test_make_catalog():
