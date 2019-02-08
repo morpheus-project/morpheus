@@ -1,7 +1,9 @@
 # Adapted from https://github.com/samuelcolvin/tensorflow-gpu-py36/blob/master/Dockerfile
 # This should be much easier after tensorflow support python 3.6 with CUDA 10
 # build me with:
-# docker build --no-cache -t morpheusastro/morpheus:0.3-cpu -f Dockerfile.gpu .
+# docker build --no-cache -t morpheusastro/morpheus:0.3-gpu -f Dockerfile.gpu .
+# send me with:
+# docker push morpheusastro/morpheus:0.3-gpu
 
 FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
 
