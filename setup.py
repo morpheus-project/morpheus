@@ -20,11 +20,11 @@ URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = "0.2.2"
+VERSION = "0.3.1"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "numpy<1.16", # remove retriction once skimage >= 14.2
+    "numpy<1.16",  # remove retriction once skimage >= 14.2
     "colorama",
     "astropy",
     "tqdm",

@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     morpheus.core
+    morpheus.data
 
 Submodules
 ----------

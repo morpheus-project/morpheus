@@ -21,43 +21,28 @@
 # ==============================================================================
 """Integration tests for Morpheus"""
 
-from astropy.io import fits
+import os
+
 import numpy as np
 import pytest
+from astropy.io import fits
 
+import morpheus.tests.data_helper as dh
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
 
 @pytest.mark.integration
 class TestIntegration:
-    """User level integration tests"""
+    """User level integration tests."""
 
     @staticmethod
-    def get_expected_output():
-        expected_spheroid_url = "https://drive.google.com/uc?export=download&id=1nlGqibesE1LnEEif0oj-RO8xR4qNAFnP"
-        expected_disk_url = "https://drive.google.com/uc?export=download&id=1btsoZZJu9qWkVn0rzIK9emgdMe6mMcHS"
-        expected_irregular_url = "https://drive.google.com/uc?export=download&id=1qtXphVp7VflFBDWFjn6AJdvI1j3sN4KR"
-        expected_point_source_url = "https://drive.google.com/uc?export=download&id=16bFNlZvD_EmAMSpCU-DZ_Shq3FMpXgp3"
-        expected_background_url = "https://drive.google.com/uc?export=download&id=1xp6NC00T3JykdOwz0c8EFeJG0vdsThSW"
-        expected_n_url = "https://drive.google.com/uc?export=download&id=1I5IasDPGyDmMaXN4NCwLh27X_OuxYiPv"
-
-        return {
-            "spheroid": fits.getdata(expected_spheroid_url),
-            "disk": fits.getdata(expected_disk_url),
-            "irregular": fits.getdata(expected_irregular_url),
-            "point_source": fits.getdata(expected_point_source_url),
-            "background": fits.getdata(expected_background_url),
-            "n": fits.getdata(expected_n_url),
-        }
-
-    @staticmethod
-    def test_classify_image():
-        """User level example classification."""
+    def test_classify_array():
+        """User level example classification of in memory array."""
 
         h, j, v, z = example.get_sample()
 
-        expected_outs = TestIntegration.get_expected_output()
+        expected_outs = dh.get_expected_morpheus_output()
 
         outs = Classifier.classify_arrays(h=h, j=j, v=v, z=z, out_dir=None)
 
@@ -65,3 +50,56 @@ class TestIntegration:
             np.testing.assert_allclose(
                 outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
             )
+
+    @staticmethod
+    def test_classify_file():
+        """User level example classification of in memmapped array."""
+
+        out_dir = "tmp"
+        if out_dir not in os.listdir():
+            os.mkdir(out_dir)
+
+        example.get_sample(out_dir=out_dir)
+        h, j, v, z = [os.path.join(out_dir, f"{b}.fits") for b in "hjvz"]
+
+        Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir=out_dir)
+
+        expected_outs = dh.get_expected_morpheus_output()
+
+        for k in expected_outs:
+            actual = fits.getdata(os.path.join(out_dir, f"{k}.fits"))
+            np.testing.assert_allclose(
+                actual, expected_outs[k], err_msg=f"{k} failed comparison"
+            )
+
+        # clean up
+        for f in os.listdir(out_dir):
+            os.remove(os.path.join(out_dir, f))
+
+        os.rmdir(out_dir)
+
+    @staticmethod
+    def test_make_catalog():
+        """User level catalog."""
+
+        h, j, v, z = example.get_sample()
+
+        catalog = Classifier.catalog_arrays(h=h, j=j, z=z, v=v)
+
+        expected_catalog = dh.get_expected_catalog()
+
+        def element_equal(val, exp_val):
+            if isinstance(val, int):
+                assert val == exp_val
+            if isinstance(val, float):
+                np.testing.assert_almost_equal(val, exp_val)
+            if isinstance(val, list):
+                assert len(val) == len(exp_val)
+
+                for v, e in zip(val, exp_val):
+                    element_equal(v, e)
+
+        assert catalog.keys() == expected_catalog.keys()
+
+        for k in catalog:
+            element_equal(catalog[k], expected_catalog[k])

@@ -300,7 +300,7 @@ class FitsHelper:
             file_names.append(f)
             data_keys.append(morph)
 
-            FitsHelper.create_file(f, shape, np.int16)
+            FitsHelper.create_file(f, shape, np.float32)
 
         hduls, arrays = FitsHelper.get_files(file_names, mode="update")
 
@@ -685,7 +685,7 @@ class LabelHelper:
         arrays = {}
 
         for morph in LabelHelper.MORPHOLOGIES:
-            arrays[morph] = np.zeros(shape, dtype=np.int16)
+            arrays[morph] = np.zeros(shape, dtype=np.float32)
 
         return arrays
 
@@ -718,6 +718,4 @@ class LabelHelper:
         n = data["n"]
 
         for morph in LabelHelper.MORPHOLOGIES:
-            m = data[morph].copy()
-            m = np.divide(m, n, out=np.zeros_like(m, dtype=np.float32), where=n != 0)
-            data[morph] = m
+            np.divide(data[morph], n, out=data[morph], where=n != 0)

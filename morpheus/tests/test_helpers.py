@@ -285,7 +285,7 @@ class TestFitsHelper:
         for f in expected_file_names:
             arr = fits.getdata(f)
             assert arr.shape == shape
-            assert np.issubdtype(np.int16, arr.dtype)
+            assert np.issubdtype(np.float32, arr.dtype)
             os.remove(f)
 
     @staticmethod
@@ -480,7 +480,7 @@ class TestLabelHelper:
         """Test the make_rank_vote_arrays method."""
 
         expected_shape = (100, 100)
-        expected_dtype = np.int16
+        expected_dtype = np.float32
         expected_keys = LabelHelper.MORPHOLOGIES
 
         outs = LabelHelper.make_rank_vote_arrays(expected_shape)
