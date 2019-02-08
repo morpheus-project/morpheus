@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="223.77952"
+     inkscape:cx="261.47521"
      inkscape:cy="62.384926"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -35,8 +35,8 @@
      inkscape:showpageshadow="false"
      inkscape:window-width="1888"
      inkscape:window-height="1044"
-     inkscape:window-x="1952"
-     inkscape:window-y="1092"
+     inkscape:window-x="383"
+     inkscape:window-y="166"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
@@ -69,16 +69,16 @@
          style="font-size:90px">MORPHEUS</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:42.12582397px;line-height:389.00001049%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="1.8901093"
-       y="1031.4161"
+       style="font-style:normal;font-weight:normal;font-size:42.2318306px;line-height:389.00001049%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="1.8801987"
+       y="1034.0117"
        id="text4152"
        sodipodi:linespacing="389.00001%"
-       transform="scale(0.9859717,1.0142279)"><tspan
+       transform="scale(0.98845278,1.0116821)"><tspan
          sodipodi:role="line"
          id="tspan4154"
-         x="1.8901093"
-         y="1031.4161"
-         style="font-size:17.11361694px">a model for pixel level morphological classification</tspan></text>
+         x="1.8801987"
+         y="1034.0117"
+         style="font-size:17.15668297px">a model for pixel level morphological classification</tspan></text>
   </g>
 </svg>
