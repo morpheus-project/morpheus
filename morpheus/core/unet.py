@@ -70,7 +70,7 @@ class Model(morpheus.core.base_model.Model):
         Returns:
             tf.Tensor: the output tensor from the graph
 
-        TODO: add input shape check for incomaptible tensor shapes
+        TODO: add input shape check for incompatible tensor shapes
         """
 
         outputs = []
@@ -116,7 +116,7 @@ class Model(morpheus.core.base_model.Model):
     ) -> tf.Tensor:
         """Basic unit of work batch_norm->conv->dropout.
 
-        Batch normaliazation and dropout are conditioned on the obect's HParams
+        Batch normalization and dropout are conditioned on the obect's HParams
 
         Args:
             inputs (tf.Tensor): input tensor

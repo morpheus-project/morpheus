@@ -50,8 +50,8 @@ class Classifier:
     :py:meth:`~morpheus.classifier.Classifier.classify_files` and passing string
     FITS file locations.
 
-    After an image this this class offers some post processing functionality by
-    generating segmentation maps using
+    After an image has been classified this class offers some post processing
+    functionality by generating segmentation maps using
     :py:meth:`~morpheus.classifier.Classifier.make_segmap` and colorized
     morphological classifications using
     :py:meth:`~morpheus.classifier.Classifier.colorize_rank_vote_output`
@@ -96,7 +96,7 @@ class Classifier:
             h (np.ndarray): the H band values for an image
             j (np.ndarray): the J band values for an image
             z (np.ndarray): the Z band values for an image
-            v (np.ndarray): the V band values for an iamge
+            v (np.ndarray): the V band values for an image
             out_dir (str): the location where to save the output files
                            if None returns the output in memory only.
             pad (bool): if True pad the input with zeros, so that every pixel is
@@ -236,7 +236,7 @@ class Classifier:
             h (np.ndarray): the H band values for an image
             j (np.ndarray): the J band values for an image
             z (np.ndarray): the Z band values for an image
-            v (np.ndarray): the V band values for an iamge
+            v (np.ndarray): the V band values for an image
             out_dir (str): The location where to save the output files
                            if None returns the output in memory only.
             pad (bool): if True pad the input with zeros, so that every pixel is
@@ -669,7 +669,7 @@ class Classifier:
         values, then the saturation will be high and the pixel's color will be
         vibrant and not white. The value for a pixel is set to be 1-bkg, where
         bkg is value given to the background class. If the background class has
-        a high value, then the pixel will appear more black. If the background
+        a high value, then the pixel will appear more more black. If the background
         value is low, then the pixel will take on the color given by the hue and
         saturation values.
 
@@ -733,14 +733,14 @@ class Classifier:
         """Generate a segmentation map from the classification output.
 
             Segmentation maps are generated using the background classification
-            in ``data``. The segmenatation maps are generated using the
+            in ``data``. The segmentation maps are generated using the
             `watershed algorithm <https://en.wikipedia.org/wiki/Watershed_(image_processing)>`_
             in conjunction with a couple heuristics for simple deblending. The
             steps to generate the segmentation map are as follows:
 
             **Inputs**: Background pixel classifications *b* and H band flux *h*
 
-            **Outpus**: A segmentation map *sm*
+            **Outputs**: A segmentation map *sm*
 
             **Algorithm**:
 
@@ -784,7 +784,7 @@ class Classifier:
             out_dir (str): A path to save the segmap in.
             min_distance (int): The minimum distance for deblending
             mask (np.ndarry): A boolean mask indicating which pixels
-            deblend (bool): If ``True``, perform delblending as described in 2.
+            deblend (bool): If ``True``, perform deblending as described in 2.
                             in the algorithm description. If ``False`` return
                             segmap without deblending.
 

@@ -4,7 +4,7 @@
 .. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`__
 .. |catalog_arrays| replace:: `catalog_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.catalog_arrays>`__
 
-.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.svg
+.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.png
     :target: https://github.com/morpheus-project/morpheus
     :align: center
 
@@ -33,12 +33,12 @@ morphological information.
 Installation
 ============
 
-Morpheus is implemented using `Tensorflow <https://www.tensorflow.org/>`_.
-Tensorflow is **not** listed in the dependencies for the package. So you need
-to install Tensorflow before you install Morpheus. It has to be done this way
-to support the GPU accelerated version of Tensorflow, which has a different
-package name. For more information on installing Tensorflow visit the
-`Tensorflow website <https://www.tensorflow.org/install/>`_.
+Morpheus is implemented using `TensorFlow <https://www.tensorflow.org/>`_.
+TensorFlow is **not** listed in the dependencies for the package. So you need
+to install TensorFlow before you install Morpheus. It has to be done this way
+to support the GPU accelerated version of TensorFlow, which has a different
+package name. For more information on installing TensorFlow visit the
+`TensorFlow website <https://www.tensorflow.org/install/>`_.
 
 
 .. code-block:: bash
@@ -49,7 +49,7 @@ Docker
 ======
 
 Morpheus has two main flavors of Docker Image: ``gpu`` for the GPU enabled version
-of Tensorflow and ``cpu`` for the standard CPU implementation of Tensorflow.
+of TensorFlow and ``cpu`` for the standard CPU implementation of TensorFlow.
 Visit the `Docker Hub <https://hub.docker.com/r/morpheusastro/morpheus>`_ page
 for relevant tags.
 

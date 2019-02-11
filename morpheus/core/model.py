@@ -34,7 +34,7 @@ import morpheus.core.unet
 class Morpheus(morpheus.core.unet.Model):
     """The main class for the Morpheus model.
 
-    This class takes an Tensorflow HParams object as an argument and it should 
+    This class takes an TensorFlow HParams object as an argument and it should
     contain the following properties:
 
     Note if you are using a pretrained weights for inference only you need
@@ -45,7 +45,7 @@ class Morpheus(morpheus.core.unet.Model):
     You can get the default HParams by calling Morpheus.inference_hparams().
 
     An example call for inference only
-    
+
     >>> dataset = Morpheus.mock_dataset()
     >>> hparams = Morpheus.inference_hparams()
     >>> data_format = 'channels_last'
@@ -70,7 +70,7 @@ class Morpheus(morpheus.core.unet.Model):
         data_format: channels_first or channels_last
 
     TODO:
-        * Make optimizer a paramter
+        * Make optimizer a parameter
     """
 
     def __init__(
@@ -252,7 +252,7 @@ class Morpheus(morpheus.core.unet.Model):
         Returns:
             A dictionary collection of (tf.Tensor, tf.Tensor), where the keys
             are the names of the metrics and the values are running metric
-            pairs. More infor on running accuracy metircs here:
+            pairs. More infor on running accuracy metrics here:
             https://www.tensorflow.org/api_docs/python/tf/metrics/accuracy
         """
         metrics_dict = {}
