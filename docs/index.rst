@@ -21,7 +21,7 @@ Morpheus
    :caption: Contents:
 
 .. include:: ../README.rst
-   :start-line: 26
+   :start-line: 31
 
 Indices and tables
 ==================
