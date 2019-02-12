@@ -4,11 +4,15 @@
 .. |classify_files| replace:: `classify_files <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.classify_files>`__
 .. |catalog_arrays| replace:: `catalog_arrays <https://morpheus-astro.readthedocs.io/en/latest/source/morpheus.html#morpheus.classifier.Classifier.catalog_arrays>`__
 
-.. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.png
+.. .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.png
     :target: https://github.com/morpheus-project/morpheus
     :align: center
 
-----
+########
+Morpheus
+########
+
+====================================
 
 .. image:: https://travis-ci.com/morpheus-project/morpheus.svg?branch=master
     :target: https://travis-ci.com/morpheus-project/morpheus
