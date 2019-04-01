@@ -1,5 +1,5 @@
 # MIT License
-# Copyright 2018 Ryan Hausen
+# Copyright 2019 Ryan Hausen
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,11 @@ import argparse
 
 from morpheus.classifier import Classifier
 
-
 def __valid_file(value):
     if os.path.isfile(value) and value.endswith((".fits", ".FITS")):
         return value
 
     raise ValueError("File needs to be a fits file, ending with .fits or .FITS")
-
 
 def __valid_dir(value):
     if os.path.isdir(value):
@@ -39,6 +37,18 @@ def __valid_dir(value):
 
     raise ValueError("Value needs to be a directory.")
 
+def __gpus(value):
+    gpus = [int(v) for v in value.split(',')]
+
+    gpu_err = "--gpus option requires more than one GPU ID. If you are trying "
+    gpu_err += "to select a single gpu to use the CUDA_VISIBLE_DEVICES "
+    gpu_err += "environment variable. For more information: "
+    gpu_err += "https://devblogs.nvidia.com/cuda-pro-tip-control-gpu-visibility-cuda_visible_devices/"
+
+    if len(gpus)<2:
+        raise ValueError(gpu_err)
+
+    return gpus
 
 def __parse_args():
     """A place to set the arugments used in main."""
@@ -53,18 +63,39 @@ def __parse_args():
 
     # optional arguments
 
-    help_desc = "An additional optional flag to include additional information "
-    help_desc += "to the morphological classifications. `catalog` saves a "
-    help_desc += "morpholgical catalog as catalog.txt. `segmap` saves a "
-    help_desc += "segmentation map as segmap.fits. `colorize` saves a colorized "
-    help_desc += "version of the classification as colorized.png. "
-    help_desc += "`all` saves catalog, segmap, and colorize."
+    # action
+    action_desc = "An additional optional flag to include additional information "
+    action_desc += "to the morphological classifications. `catalog` saves a "
+    action_desc += "morpholgical catalog as catalog.txt. `segmap` saves a "
+    action_desc += "segmentation map as segmap.fits. `colorize` saves a colorized "
+    action_desc += "version of the classification as colorized.png. "
+    action_desc += "`all` saves catalog, segmap, and colorize."
 
     parser.add_argument(
         "--action",
         choices=["catalog", "segmap", "colorize", "all"],
         default="None",
-        help=help_desc,
+        help=action_desc,
+    )
+
+    # parallel gpu
+    gpus_desc = "Optional flag for classifying an image in parallel with multiple "
+    gpus_desc += "GPUs. Should be comma seperated ints like: 1,3 or 0,1,2 no spaces."
+    gpus_desc += "DO NOT use this flag for a single GPU classification. "
+    gpus_desc += "Use the CUDA_VISIBLE_DEVICES enironment variable to select a "
+    gpus_desc += "GPU for morpheus to use."
+
+    parser.add_argument(
+        "--gpus",
+        type=__gpus,
+        help=gpus_desc
+    )
+
+    # parallel cpu
+    parser.add_argument(
+        "--cpus",
+        type=int,
+        help="Optional flag for classifying an image in parrallel with multiple cpus"
     )
 
     parser.add_argument("--out_dir", type=__valid_dir, default=os.getcwd())
@@ -74,6 +105,9 @@ def __parse_args():
 
 def main():
     args = __parse_args()
+
+    if args.cpus and args.gpus:
+        raise ValueError("Both --cpus and --gpus were indicated. Choose only one.")
 
     if args.action == "None":
         Classifier.classify_files(

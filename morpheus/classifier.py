@@ -167,6 +167,7 @@ class Classifier:
         batch_size: int = 1000,
         out_type: str = "rank_vote",
         gpus: List[int] = None,
+        cpus: int = None,
         parallel_check_interval: int = 15,
     ) -> None:
         """Classify FITS files using Morpheus.
@@ -186,7 +187,10 @@ class Classifier:
                             'rank_vote' record output as the normalized vote
                             count. If 'both' record both outputs.
             gpus (List[int]): A list of the CUDA gpu ID's to use for a
-                              parallel classification.
+                              parallel classification. Don't indicate gpus and
+                              cpus.
+            cpus (int): The number of cpus to use in non-gpu parallel classification.
+                        Don't indicate cpus and gpus.
             parallel_check_interval (int): If gpus are given, then this is the number
                                            of minutes to wait between polling each
                                            subprocess for completion
@@ -194,10 +198,10 @@ class Classifier:
         Returns:
             None
         """
-
         hduls, [h, j, v, z] = Classifier._parse_files(h, j, v, z)
 
-        is_serial_run = (gpus is None) or (not gpus) or (len(gpus) == 1)
+        is_serial_run = Classifier._validate_parallel_params(gpus, cpus)
+
         if is_serial_run:
             Classifier.classify_arrays(
                 h=h,
@@ -649,6 +653,10 @@ class Classifier:
                     is_running[i] = False
 
             time.sleep(parallel_check_interval * 60)
+
+    @staticmethod
+    def _validate_parallel_params(gpus: List[int], cpus:List[int]) -> bool:
+        return True
 
     @staticmethod
     def colorize_rank_vote_output(
