@@ -588,14 +588,14 @@ class Classifier:
 
     @staticmethod
     def _build_parallel_classification_structure(
-        arrs: List[np.ndarray], gpus: List[int], out_dir: str
+        arrs: List[np.ndarray], workers: List[int], out_dir: str
     ) -> None:
         """Sets up the subdirs and files to run the parallel classification.
 
         Args:
             arrs (List[np.ndarray]): List of arrays to split up in the order HJVZ
-            gpus (List[int]): A list of the CUDA gpu ID's to use for a
-                              parallel classification.
+            workers (List[int]): A list of worker ID's that can either be CUDA GPU
+                                 ID's or a list of 
             out_dir (str): the location to place the subdirs in
 
         Returns:
@@ -603,13 +603,13 @@ class Classifier:
         """
 
         shape = arrs[0].shape
-        num_gpus = len(gpus)
+        num_workers = len(workers)
         split_slices = Classifier._get_split_slice_generator(
-            shape, num_gpus, Classifier._get_split_length(shape, num_gpus)
+            shape, num_workers, Classifier._get_split_length(shape, num_workers)
         )
 
-        for gpu, split_slice in tqdm(zip(sorted(gpus), split_slices)):
-            sub_output_dir = os.path.join(out_dir, str(gpu))
+        for worker, split_slice in tqdm(zip(sorted(workers), split_slices)):
+            sub_output_dir = os.path.join(out_dir, str(worker))
             os.mkdir(sub_output_dir)
 
             for name, data in zip(["h", "j", "v", "z"], arrs):
