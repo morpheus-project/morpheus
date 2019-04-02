@@ -25,11 +25,13 @@ import argparse
 
 from morpheus.classifier import Classifier
 
+
 def __valid_file(value):
     if os.path.isfile(value) and value.endswith((".fits", ".FITS")):
         return value
 
     raise ValueError("File needs to be a fits file, ending with .fits or .FITS")
+
 
 def __valid_dir(value):
     if os.path.isdir(value):
@@ -37,18 +39,20 @@ def __valid_dir(value):
 
     raise ValueError("Value needs to be a directory.")
 
+
 def __gpus(value):
-    gpus = [int(v) for v in value.split(',')]
+    gpus = [int(v) for v in value.split(",")]
 
     gpu_err = "--gpus option requires more than one GPU ID. If you are trying "
     gpu_err += "to select a single gpu to use the CUDA_VISIBLE_DEVICES "
     gpu_err += "environment variable. For more information: "
     gpu_err += "https://devblogs.nvidia.com/cuda-pro-tip-control-gpu-visibility-cuda_visible_devices/"
 
-    if len(gpus)<2:
+    if len(gpus) < 2:
         raise ValueError(gpu_err)
 
     return gpus
+
 
 def __parse_args():
     """A place to set the arugments used in main."""
@@ -85,20 +89,22 @@ def __parse_args():
     gpus_desc += "Use the CUDA_VISIBLE_DEVICES enironment variable to select a "
     gpus_desc += "GPU for morpheus to use."
 
-    parser.add_argument(
-        "--gpus",
-        type=__gpus,
-        help=gpus_desc
-    )
+    parser.add_argument("--gpus", type=__gpus, help=gpus_desc)
 
     # parallel cpu
     parser.add_argument(
         "--cpus",
         type=int,
-        help="Optional flag for classifying an image in parrallel with multiple cpus"
+        help="Optional flag for classifying an image in parrallel with multiple cpus",
     )
 
-    parser.add_argument("--out_dir", type=__valid_dir, default=os.getcwd())
+    out_dir_desc = "The directory to save the output in."
+    parser.add_argument(
+        "--out_dir", type=__valid_dir, default=os.getcwd(), help=out_dir_desc
+    )
+
+    batch_size_desc = "The batch size for Moprheus to use when classifying the image."
+    parser.add_argument("--batch_size", type=int, default=1000, help=batch_size_desc)
 
     return parser.parse_args()
 
@@ -111,12 +117,19 @@ def main():
 
     if args.action == "None":
         Classifier.classify_files(
-            h=args.h, j=args.j, z=args.z, v=args.v, out_dir=args.out_dir
+            h=args.h,
+            j=args.j,
+            z=args.z,
+            v=args.v,
+            out_dir=args.out_dir,
+            gpus=args.gpus,
+            cpus=args.cpus,
         )
+
     elif args.action == "catalog":
-        pass
+        raise NotImplementedError("Catalog functionality not implemented for files")
     elif args.action == "segmap":
-        pass
+        raise NotImplementedError("Segmentation map functionality not im")
     elif args.action == "colorize":
         pass
     elif args.action == "all":
