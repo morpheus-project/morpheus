@@ -147,3 +147,26 @@ class TestClassifier:
         actual_segmap = Classifier.make_segmap(data, h, mask=mask)
 
         np.testing.assert_array_equal(expected_segmap, actual_segmap)
+
+
+    # New API ==================================================================
+    @staticmethod
+    def test_segmap_from_classified():
+        """Test the segmap_from_classified method."""
+
+        data = dh.get_expected_morpheus_output()
+        h, _, _, _ = example.get_sample()
+        mask = np.zeros_like(h, dtype=np.int)
+        mask[5:-5, 5:-5] = 1
+
+        expected_segmap = dh.get_expected_segmap()["segmap"]
+
+        actual_segmap = Classifier.segmap_from_classifed(data, h, mask=mask)
+
+        np.testing.assert_array_equal(expected_segmap, actual_segmap)
+
+    @staticmethod
+    def test_catalog_from_classified():
+        pass
+
+    # New API ==================================================================

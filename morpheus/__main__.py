@@ -116,25 +116,104 @@ def main():
         raise ValueError("Both --cpus and --gpus were indicated. Choose only one.")
 
     if args.action == "None":
-        Classifier.classify_files(
+        Classifier.classify(
             h=args.h,
             j=args.j,
-            z=args.z,
             v=args.v,
+            z=args.z,
+            batch_size=args.batch_size,
             out_dir=args.out_dir,
             gpus=args.gpus,
-            cpus=args.cpus,
+            cpus=args.cpus
+        )
+    elif args.action == "catalog":
+        classified = Classifier.classify(
+            h=args.h,
+            j=args.j,
+            v=args.v,
+            z=args.z,
+            batch_size=args.batch_size,
+            out_dir=args.out_dir,
+            gpus=args.gpus,
+            cpus=args.cpus
         )
 
-    elif args.action == "catalog":
-        raise NotImplementedError("Catalog functionality not implemented for files")
-    elif args.action == "segmap":
-        raise NotImplementedError("Segmentation map functionality not im")
-    elif args.action == "colorize":
-        pass
-    elif args.action == "all":
-        pass
+        segmap = Classifier.segmap_from_classifed(
+            classified,
+            args.h,
+            out_dir=args.out_dir
+        )
 
+        Classifier.catalog_from_classified(
+            classified,
+            args.h,
+            segmap,
+            out_file=os.path.join(args.out_dir, 'colorized.png'),
+
+        )
+    elif args.action == "segmap":
+        classified = Classifier.classify(
+            h=args.h,
+            j=args.j,
+            v=args.v,
+            z=args.z,
+            batch_size=args.batch_size,
+            out_dir=args.out_dir,
+            gpus=args.gpus,
+            cpus=args.cpus
+        )
+
+        Classifier.segmap_from_classifed(
+            classified,
+            args.h,
+            out_dir=args.out_dir
+        )
+    elif args.action == "colorize":
+        classified = Classifier.classify(
+            h=args.h,
+            j=args.j,
+            v=args.v,
+            z=args.z,
+            batch_size=args.batch_size,
+            out_dir=args.out_dir,
+            gpus=args.gpus,
+            cpus=args.cpus
+        )
+
+        Classifier.colorize_classified(
+            classified,
+            out_dir=args.out_dir
+        )
+    elif args.action == "all":
+        classified = Classifier.classify(
+            h=args.h,
+            j=args.j,
+            v=args.v,
+            z=args.z,
+            batch_size=args.batch_size,
+            out_dir=args.out_dir,
+            gpus=args.gpus,
+            cpus=args.cpus
+        )
+
+        segmap = Classifier.segmap_from_classifed(
+            classified,
+            args.h,
+            out_dir=args.out_dir
+        )
+
+        Classifier.catalog_from_classified(
+            classified,
+            args.h,
+            segmap,
+            out_file=os.path.join(args.out_dir, 'colorized.png'),
+
+        )
+
+        Classifier.colorize_classified(
+            classified,
+            out_dir=args.out_dir
+        )
 
 if __name__ == "__main__":
     main()

@@ -106,7 +106,7 @@ class Classifier:
             )
         else:
             Classifier._build_parallel_classification_structure(
-                [h, j, v, z], workers, batch_size, out_dir
+                [h, j, v, z], workers, batch_size, out_dir, out_type
             )
             Classifier._run_parallel_jobs(
                 workers, is_gpu, out_dir, parallel_check_interval
@@ -223,7 +223,7 @@ class Classifier:
     # TODO: make the output file with the FITS helper if the output dir is used.
     @staticmethod
     def segmap_from_classifed(
-        data: dict,
+        classified: dict,
         flux: np.ndarray,
         out_dir: str = None,
         min_distance: int = 20,
@@ -291,12 +291,12 @@ class Classifier:
         Returns:
             A np.ndarray segmentation map
         """
-        bkg = data["background"]
+        bkg = classified["background"]
         markers = np.zeros_like(flux, dtype=np.uint8)
 
         print("Building Markers...")
         if mask is None:
-            mask = data["n"] > 0
+            mask = classified["n"] > 0
 
         is_bkg = np.logical_and(bkg == 1, mask)
         is_src = np.logical_and(bkg == 0, mask)
@@ -315,16 +315,16 @@ class Classifier:
         labeled[np.logical_not(mask)] = -1
 
         if deblend:
-            labeled = Classifier._deblend(labeled, h, min_distance)
+            labeled = Classifier._deblend(labeled, flux, min_distance)
 
         if out_dir:
-            fits.PrimaryHDU(data=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
+            fits.PrimaryHDU(classified=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
 
         return labeled
 
     @staticmethod
     def colorize_classified(
-        data: dict, out_dir: str = None, hide_unclassified: bool = True
+        classified: dict, out_dir: str = None, hide_unclassified: bool = True
     ) -> np.ndarray:
         """Makes a color images from the classification output.
 
@@ -363,15 +363,15 @@ class Classifier:
         yellow = 0.18  # point source
         green = 0.3  # irregular
 
-        shape = data["n"].shape
+        shape = classified["n"].shape
 
         colors = np.array([red, blue, green, yellow])
-        morphs = np.dstack([data[i] for i in helpers.LabelHelper.MORPHOLOGIES[:-1]])
+        morphs = np.dstack([classified[i] for i in helpers.LabelHelper.MORPHOLOGIES[:-1]])
         ordered = np.argsort(-morphs, axis=-1)
 
         hues = np.zeros(shape)
         sats = np.zeros(shape)
-        vals = 1 - data["background"]
+        vals = 1 - classified["background"]
 
         # the classifier doesn't return values for this area so black it out
         if hide_unclassified:
@@ -577,7 +577,7 @@ class Classifier:
             )
         else:
             Classifier._build_parallel_classification_structure(
-                [h, j, v, z], workers, batch_size, out_dir
+                [h, j, v, z], workers, batch_size, out_dir, out_type
             )
             Classifier._run_parallel_jobs(
                 workers, is_gpu, out_dir, parallel_check_interval
@@ -964,7 +964,11 @@ class Classifier:
 
     @staticmethod
     def _build_parallel_classification_structure(
-        arrs: List[np.ndarray], workers: List[int], batch_size: int, out_dir: str
+        arrs: List[np.ndarray],
+        workers: List[int],
+        batch_size: int,
+        out_dir: str,
+        out_type: str,
     ) -> None:
         """Sets up the subdirs and files to run the parallel classification.
 
