@@ -148,7 +148,6 @@ class TestClassifier:
 
         np.testing.assert_array_equal(expected_segmap, actual_segmap)
 
-
     # New API ==================================================================
     @staticmethod
     def test_segmap_from_classified():
@@ -167,6 +166,14 @@ class TestClassifier:
 
     @staticmethod
     def test_catalog_from_classified():
-        pass
+        """Test the catalog_from_classified method."""
+
+        classified = dh.get_expected_morpheus_output()
+        h, _, _, _ = example.get_sample()
+        segmap = dh.get_expected_segmap()["segmap"]
+
+        expected_catalog = dh.get_expected_catalog()["catalog"]
+
+        actual_catalog = Classifier.catalog_from_classified(classified, h, segmap)
 
     # New API ==================================================================

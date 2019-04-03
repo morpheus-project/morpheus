@@ -318,7 +318,9 @@ class Classifier:
             labeled = Classifier._deblend(labeled, flux, min_distance)
 
         if out_dir:
-            fits.PrimaryHDU(classified=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
+            fits.PrimaryHDU(classified=labeled).writeto(
+                os.path.join(out_dir, "segmap.fits")
+            )
 
         return labeled
 
@@ -366,7 +368,9 @@ class Classifier:
         shape = classified["n"].shape
 
         colors = np.array([red, blue, green, yellow])
-        morphs = np.dstack([classified[i] for i in helpers.LabelHelper.MORPHOLOGIES[:-1]])
+        morphs = np.dstack(
+            [classified[i] for i in helpers.LabelHelper.MORPHOLOGIES[:-1]]
+        )
         ordered = np.argsort(-morphs, axis=-1)
 
         hues = np.zeros(shape)
