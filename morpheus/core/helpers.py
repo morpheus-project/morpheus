@@ -300,7 +300,7 @@ class FitsHelper:
             file_names.append(f)
             data_keys.append(morph)
 
-            FitsHelper.create_file(f, shape, np.int16)
+            FitsHelper.create_file(f, shape, np.float32)
 
         hduls, arrays = FitsHelper.get_files(file_names, mode="update")
 
@@ -570,6 +570,7 @@ class LabelHelper:
         total_shape = data["n"].shape
         for i, l in enumerate(labels):
             y, x = batch_idx[i]
+            LabelHelper.update_ns(data, [(y, x)])
             ys = slice(y, y + window_y)
             xs = slice(x, x + window_x)
 
@@ -643,11 +644,13 @@ class LabelHelper:
             None
         """
 
-        LabelHelper.update_ns(data, batch_idx)
-
-        if out_type in ["both", "mean_var"]:
+        if out_type == "mean_var":
             LabelHelper.update_mean_var(data, labels, batch_idx)
-        if out_type in ["both", "rank_vote"]:
+        elif out_type == "rank_vote":
+            LabelHelper.update_ns(data, batch_idx)
+            LabelHelper.update_rank_vote(data, labels, batch_idx)
+        else:
+            LabelHelper.update_mean_var(data, labels, batch_idx)
             LabelHelper.update_rank_vote(data, labels, batch_idx)
 
     @staticmethod
@@ -685,7 +688,7 @@ class LabelHelper:
         arrays = {}
 
         for morph in LabelHelper.MORPHOLOGIES:
-            arrays[morph] = np.zeros(shape, dtype=np.int16)
+            arrays[morph] = np.zeros(shape, dtype=np.float32)
 
         return arrays
 
@@ -720,4 +723,4 @@ class LabelHelper:
         for morph in LabelHelper.MORPHOLOGIES:
             m = data[morph].copy()
             m = np.divide(m, n, out=np.zeros_like(m, dtype=np.float32), where=n != 0)
-            data[morph] = m
+            data[morph][:, :] = m[:, :]

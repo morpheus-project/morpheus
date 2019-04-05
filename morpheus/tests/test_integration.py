@@ -21,9 +21,11 @@
 # ==============================================================================
 """Integration tests for Morpheus"""
 
+import os
 import numpy as np
 import pytest
 
+from astropy.io import fits
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
@@ -35,14 +37,14 @@ class TestIntegration:
     """User level integration tests."""
 
     @staticmethod
-    def test_classify_image():
-        """User level example classification."""
+    def test_classify_image_rank_vote_in_mem():
+        """Classify an image in memory using rank vote."""
 
         h, j, v, z = example.get_sample()
 
         expected_outs = dh.get_expected_morpheus_output()
 
-        outs = Classifier.classify_arrays(h=h, j=j, v=v, z=z, out_dir=None)
+        outs = Classifier.classify(h=h, j=j, v=v, z=z, out_dir=None)
 
         for k in outs:
             np.testing.assert_allclose(
@@ -50,27 +52,53 @@ class TestIntegration:
             )
 
     @staticmethod
-    def test_make_catalog():
-        """User level catalog."""
+    def test_classify_image_rank_vote_file():
+        """Classify an image from files using rank vote."""
+        local = os.path.dirname(os.path.abspath(__file__))
 
-        h, j, v, z = example.get_sample()
+        example.get_sample(local)
 
-        catalog = Classifier.catalog_arrays(h=h, j=j, z=z, v=v)
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
 
-        expected_catalog = dh.get_expected_catalog()
+        Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local)
 
-        def element_equal(val, exp_val):
-            if isinstance(val, int):
-                assert val == exp_val
-            if isinstance(val, float):
-                np.testing.assert_almost_equal(val, exp_val)
-            if isinstance(val, list):
-                assert len(val) == len(exp_val)
+        outs = dh.get_expected_morpheus_output()
 
-                for v, e in zip(val, exp_val):
-                    element_equal(v, e)
+        for k in outs:
 
-        assert catalog.keys() == expected_catalog.keys()
+            np.testing.assert_allclose(
+                outs[k],
+                fits.getdata(os.path.join(local, f"{k}.fits")),
+                err_msg=f"{k} failed comparison",
+            )
 
-        for k in catalog:
-            element_equal(catalog[k], expected_catalog[k])
+            os.remove(os.path.join(local, f"{k}.fits"))
+
+        for b in "hjvz":
+            os.remove(os.path.join(local, f"{b}.fits"))
+
+    @staticmethod
+    def test_classify_image_mean_var_file():
+        """Classify an image from files using mean and variance."""
+        local = os.path.dirname(os.path.abspath(__file__))
+
+        example.get_sample(local)
+
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
+
+        # Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local, out_type="mean_var")
+
+        # outs = dh.get_expected_morpheus_output()
+
+        # for k in outs:
+
+        #     np.testing.assert_allclose(
+        #         outs[k],
+        #         fits.getdata(os.path.join(local, f"{k}.fits")),
+        #         err_msg=f"{k} failed comparison"
+        #     )
+
+        #     os.remove(os.path.join(local, f"{k}.fits"))
+
+        # for b in "hjvz":
+        #     os.remove(os.path.join(local, f"{b}.fits"))

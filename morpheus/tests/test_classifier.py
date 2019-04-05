@@ -103,52 +103,41 @@ class TestClassifier:
         with pytest.raises(ValueError):
             Classifier._variables_not_none(["good", "bad"], [1, None])
 
-    @staticmethod
-    def test_colorize_rank_vote_output():
-        """Test colorize_rank_vote_output."""
-
-        data = dh.get_expected_morpheus_output()
-        expected_color = dh.get_expected_colorized_pngs()["no_hidden"]
-
-        actual_color = Classifier.colorize_rank_vote_output(
-            data, hide_unclassified=False
-        )
-
-        actual_color = (actual_color * 255).astype(np.uint8)
-
-        np.testing.assert_array_almost_equal(expected_color, actual_color)
-
-    @staticmethod
-    def test_colorize_rank_vote_output_hidden():
-        """Test colorize_rank_vote_output with hiding."""
-
-        data = dh.get_expected_morpheus_output()
-        expected_color = dh.get_expected_colorized_pngs()["hidden"]
-
-        actual_color = Classifier.colorize_rank_vote_output(
-            data, hide_unclassified=True
-        )
-
-        actual_color = (actual_color * 255).astype(np.uint8)
-
-        np.testing.assert_array_almost_equal(expected_color, actual_color)
-
-    @staticmethod
-    def test_make_segmap():
-        """Test make_segmap method."""
-
-        data = dh.get_expected_morpheus_output()
-        h, _, _, _ = example.get_sample()
-        mask = np.zeros_like(h, dtype=np.int)
-        mask[5:-5, 5:-5] = 1
-
-        expected_segmap = dh.get_expected_segmap()["segmap"]
-
-        actual_segmap = Classifier.make_segmap(data, h, mask=mask)
-
-        np.testing.assert_array_equal(expected_segmap, actual_segmap)
-
     # New API ==================================================================
+    @staticmethod
+    def test_validate_parallel_params_raises_cpus_gpus():
+        """Test _validate_parallel_params.
+
+        Throws ValueError for passing values for both cpus an gpus.
+        """
+        gpus = [0]
+        cpus = 0
+
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(gpus=gpus, cpus=cpus)
+
+    @staticmethod
+    def test_validate_parallel_params_raises_single_gpu():
+        """Test _validate_parallel_params.
+
+        Throws ValueError for passing a single gpu.
+        """
+        gpus = [0]
+
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(gpus=gpus)
+
+    @staticmethod
+    def test_validate_parallel_params_raises_single_cpu():
+        """Test _validate_parallel_params.
+
+        Throws ValueError for passing a single gpu.
+        """
+        cpus = 1
+
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(cpus=cpus)
+
     @staticmethod
     def test_segmap_from_classified():
         """Test the segmap_from_classified method."""
@@ -175,5 +164,51 @@ class TestClassifier:
         expected_catalog = dh.get_expected_catalog()["catalog"]
 
         actual_catalog = Classifier.catalog_from_classified(classified, h, segmap)
+
+        assert expected_catalog == actual_catalog
+
+    @staticmethod
+    def test_colorize_classified():
+        """Test colorize_classified."""
+
+        data = dh.get_expected_morpheus_output()
+        expected_color = dh.get_expected_colorized_pngs()["no_hidden"]
+
+        actual_color = Classifier.colorize_classified(data, hide_unclassified=False)
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_colorize_classified_hidden():
+        """Test colorize_classified with hidden."""
+
+        classified = dh.get_expected_morpheus_output()
+        expected_color = dh.get_expected_colorized_pngs()["hidden"]
+
+        actual_color = Classifier.colorize_classified(
+            classified, hide_unclassified=True
+        )
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_valid_input_types_ndarray():
+        """Test _valid_input_types."""
+
+        h, j, v, z = [np.zeros([10]) for _ in range(4)]
+
+        assert Classifier._valid_input_types(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_str():
+        """Test _valid_input_types."""
+
+        h, j, v, z = ["" for _ in range(4)]
+
+        assert Classifier._valid_input_types(h, j, v, z)
 
     # New API ==================================================================
