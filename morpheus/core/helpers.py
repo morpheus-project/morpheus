@@ -440,8 +440,9 @@ class LabelHelper:
             An array with the same shape as the curr_mean with the newly
             calculated mean values.
         """
-        n[n == 0] = 1
-        return curr_mean + ((x_n - curr_mean) / n * update_mask)
+        _n = n.copy()
+        _n[_n == 0] = 1
+        return curr_mean + ((x_n - curr_mean) / _n * update_mask)
 
     @staticmethod
     def iterative_variance(

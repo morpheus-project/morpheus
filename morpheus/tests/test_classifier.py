@@ -196,19 +196,38 @@ class TestClassifier:
         np.testing.assert_array_almost_equal(expected_color, actual_color)
 
     @staticmethod
-    def test_valid_input_types_ndarray():
-        """Test _valid_input_types."""
+    def test_valid_input_types_is_str_ndarray():
+        """Test _valid_input_types_is_str."""
 
         h, j, v, z = [np.zeros([10]) for _ in range(4)]
 
-        assert Classifier._valid_input_types(h, j, v, z)
+        assert not Classifier._valid_input_types_is_str(h, j, v, z)
 
     @staticmethod
-    def test_valid_input_types_str():
-        """Test _valid_input_types."""
+    def test_valid_input_types_is_str_str():
+        """Test _valid_input_types_is_str."""
 
         h, j, v, z = ["" for _ in range(4)]
 
-        assert Classifier._valid_input_types(h, j, v, z)
+        assert Classifier._valid_input_types_is_str(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_is_str_throws_mixed():
+        """Test _valid_input_types_is_str."""
+
+        h, j = ["" for _ in range(2)]
+        v, z = [np.zeros([10]) for _ in range(2)]
+
+        with pytest.raises(ValueError):
+            Classifier._valid_input_types_is_str(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_is_str_throws_wrong_type():
+        """Test _valid_input_types_is_str."""
+
+        h, j, v, z = [1 for _ in range(4)]
+
+        with pytest.raises(ValueError):
+            Classifier._valid_input_types_is_str(h, j, v, z)
 
     # New API ==================================================================

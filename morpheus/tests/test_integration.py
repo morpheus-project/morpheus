@@ -39,7 +39,6 @@ class TestIntegration:
     @staticmethod
     def test_classify_image_rank_vote_in_mem():
         """Classify an image in memory using rank vote."""
-
         h, j, v, z = example.get_sample()
 
         expected_outs = dh.get_expected_morpheus_output()
@@ -65,7 +64,6 @@ class TestIntegration:
         outs = dh.get_expected_morpheus_output()
 
         for k in outs:
-
             np.testing.assert_allclose(
                 outs[k],
                 fits.getdata(os.path.join(local, f"{k}.fits")),
@@ -78,6 +76,21 @@ class TestIntegration:
             os.remove(os.path.join(local, f"{b}.fits"))
 
     @staticmethod
+    def test_classify_image_mean_var():
+        """Classify an image from files using mean and variance."""
+        h, j, v, z = example.get_sample()
+
+        outs = Classifier.classify(h=h, j=j, v=v, z=z, out_type="mean_var")
+
+        expected_outs = dh.get_expected_morpheus_output(out_type="mean_var")
+
+        for k in outs:
+
+            np.testing.assert_allclose(
+                outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
+            )
+
+    @staticmethod
     def test_classify_image_mean_var_file():
         """Classify an image from files using mean and variance."""
         local = os.path.dirname(os.path.abspath(__file__))
@@ -86,19 +99,19 @@ class TestIntegration:
 
         h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
 
-        # Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local, out_type="mean_var")
+        Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local, out_type="mean_var")
 
-        # outs = dh.get_expected_morpheus_output()
+        outs = dh.get_expected_morpheus_output(out_type="mean_var")
 
-        # for k in outs:
+        for k in outs:
 
-        #     np.testing.assert_allclose(
-        #         outs[k],
-        #         fits.getdata(os.path.join(local, f"{k}.fits")),
-        #         err_msg=f"{k} failed comparison"
-        #     )
+            np.testing.assert_allclose(
+                outs[k],
+                fits.getdata(os.path.join(local, f"{k}.fits")),
+                err_msg=f"{k} failed comparison",
+            )
 
-        #     os.remove(os.path.join(local, f"{k}.fits"))
+            os.remove(os.path.join(local, f"{k}.fits"))
 
-        # for b in "hjvz":
-        #     os.remove(os.path.join(local, f"{b}.fits"))
+        for b in "hjvz":
+            os.remove(os.path.join(local, f"{b}.fits"))

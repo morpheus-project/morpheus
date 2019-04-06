@@ -532,6 +532,8 @@ class TestLabelHelper:
     def test_update_mean_var():
         """test update_mean_var."""
 
+        import matplotlib.pyplot as plt
+
         labels = [np.ones([40, 40, 5]) * i for i in range(1, 4)]
 
         data = dict()
@@ -544,22 +546,20 @@ class TestLabelHelper:
         batch_idxs = [(0, 0), (0, 1), (0, 2)]
 
         for idx, lbl in zip(batch_idxs, labels):
-            LabelHelper.update_ns(data, [idx])
             LabelHelper.update_mean_var(data, [lbl], [idx])
 
         expected_mean = np.zeros([40, 43], dtype=np.float32)
         expected_mean[5:35, 5] = 1
         expected_mean[5:35, 6] = 1.5
         expected_mean[5:35, 7:35] = 2
-        expected_mean[5:35, 35] = 1.666_666
-        expected_mean[5:35, 36] = 1.5
+        expected_mean[5:35, 35] = 2.5
+        expected_mean[5:35, 36] = 3
 
         expected_var = np.zeros([40, 43], dtype=np.float32)
         expected_var[5:35, 6] = 0.25
         expected_var[5:35, 7] = 0.666_666
         expected_var[5:35, 8:35] = 2
-        expected_var[5:35, 35] = 4.666_666
-        expected_var[5:35, 36] = 4.5
+        expected_var[5:35, 35] = 0.5
 
         for m in LabelHelper.MORPHOLOGIES:
             np.testing.assert_array_almost_equal(expected_mean, data[f"{m}_mean"])

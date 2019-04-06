@@ -83,7 +83,7 @@ class Classifier:
         parallel_check_interval: int = 15,
     ) -> dict:
         Classifier._variables_not_none(["h", "j", "v", "z"], [h, j, v, z])
-        are_files = Classifier._valid_input_types(h, j, v, z)
+        are_files = Classifier._valid_input_types_is_str(h, j, v, z)
         workers, is_gpu = Classifier._validate_parallel_params(gpus, cpus)
 
         if are_files:
@@ -407,7 +407,7 @@ class Classifier:
         pass
 
     @staticmethod
-    def _valid_input_types(
+    def _valid_input_types_is_str(
         h: Union[np.ndarray, str] = None,
         j: Union[np.ndarray, str] = None,
         z: Union[np.ndarray, str] = None,
