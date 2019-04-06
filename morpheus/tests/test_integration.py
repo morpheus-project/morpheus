@@ -84,10 +84,19 @@ class TestIntegration:
 
         expected_outs = dh.get_expected_morpheus_output(out_type="mean_var")
 
+        import matplotlib.pyplot as plt
+
         for k in outs:
+            # plt.figure()
+            # plt.imshow(outs[k])
+            # plt.figure()
+            # plt.imshow(expected_outs[k])
+            # plt.figure()
+            # plt.imshow(expected_outs[k]-outs[k])
+            # plt.show()
 
             np.testing.assert_allclose(
-                outs[k], expected_outs[k], err_msg=f"{k} failed comparison"
+                outs[k], expected_outs[k], atol=1e-5, err_msg=f"{k} failed comparison"
             )
 
     @staticmethod
@@ -108,6 +117,7 @@ class TestIntegration:
             np.testing.assert_allclose(
                 outs[k],
                 fits.getdata(os.path.join(local, f"{k}.fits")),
+                atol=1e-5,
                 err_msg=f"{k} failed comparison",
             )
 
