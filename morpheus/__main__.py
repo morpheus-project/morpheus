@@ -21,26 +21,27 @@
 # ==============================================================================
 """Morpheus -- a package for making pixel level morphological classifications."""
 import os
+import sys
 import argparse
 
 from morpheus.classifier import Classifier
 
 
-def __valid_file(value):
+def _valid_file(value):
     if os.path.isfile(value) and value.endswith((".fits", ".FITS")):
         return value
 
     raise ValueError("File needs to be a fits file, ending with .fits or .FITS")
 
 
-def __valid_dir(value):
+def _valid_dir(value):
     if os.path.isdir(value):
         return value
 
     raise ValueError("Value needs to be a directory.")
 
 
-def __gpus(value):
+def _gpus(value):
     gpus = [int(v) for v in value.split(",")]
 
     gpu_err = "--gpus option requires more than one GPU ID. If you are trying "
@@ -54,16 +55,16 @@ def __gpus(value):
     return gpus
 
 
-def __parse_args():
+def _parse_args(argv):
     """A place to set the arugments used in main."""
     parser = argparse.ArgumentParser(description=__doc__)
 
     # required arguments
     help_str = "The {} band FITS file location"
-    parser.add_argument("h", type=__valid_file, help=help_str.format("H"))
-    parser.add_argument("j", type=__valid_file, help=help_str.format("J"))
-    parser.add_argument("v", type=__valid_file, help=help_str.format("V"))
-    parser.add_argument("z", type=__valid_file, help=help_str.format("Z"))
+    parser.add_argument("h", type=_valid_file, help=help_str.format("H"))
+    parser.add_argument("j", type=_valid_file, help=help_str.format("J"))
+    parser.add_argument("v", type=_valid_file, help=help_str.format("V"))
+    parser.add_argument("z", type=_valid_file, help=help_str.format("Z"))
 
     # optional arguments
 
@@ -89,7 +90,7 @@ def __parse_args():
     gpus_desc += "Use the CUDA_VISIBLE_DEVICES enironment variable to select a "
     gpus_desc += "GPU for morpheus to use."
 
-    parser.add_argument("--gpus", type=__gpus, help=gpus_desc)
+    parser.add_argument("--gpus", type=_gpus, help=gpus_desc)
 
     # parallel cpu
     parser.add_argument(
@@ -100,20 +101,24 @@ def __parse_args():
 
     out_dir_desc = "The directory to save the output in."
     parser.add_argument(
-        "--out_dir", type=__valid_dir, default=os.getcwd(), help=out_dir_desc
+        "--out_dir", type=_valid_dir, default=os.getcwd(), help=out_dir_desc
     )
 
     batch_size_desc = "The batch size for Moprheus to use when classifying the image."
     parser.add_argument("--batch_size", type=int, default=1000, help=batch_size_desc)
 
-    return parser.parse_args()
+    # evaluate args
+    args = parser.parse_args(argv)
+
+    print(args.cpus, args.gpus)
+    if args.cpus and args.gpus:
+        raise ValueError("Both --cpus and --gpus were indicated. Choose only one.")
+
+    return args
 
 
 def main():
-    args = __parse_args()
-
-    if args.cpus and args.gpus:
-        raise ValueError("Both --cpus and --gpus were indicated. Choose only one.")
+    args = _parse_args(sys.argv)
 
     if args.action == "None":
         Classifier.classify(

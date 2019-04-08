@@ -531,9 +531,6 @@ class TestLabelHelper:
     @staticmethod
     def test_update_mean_var():
         """test update_mean_var."""
-
-        import matplotlib.pyplot as plt
-
         labels = [np.ones([40, 40, 5]) * i for i in range(1, 4)]
 
         data = dict()

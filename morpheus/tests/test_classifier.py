@@ -103,7 +103,6 @@ class TestClassifier:
         with pytest.raises(ValueError):
             Classifier._variables_not_none(["good", "bad"], [1, None])
 
-    # New API ==================================================================
     @staticmethod
     def test_validate_parallel_params_raises_cpus_gpus():
         """Test _validate_parallel_params.
@@ -229,5 +228,3 @@ class TestClassifier:
 
         with pytest.raises(ValueError):
             Classifier._valid_input_types_is_str(h, j, v, z)
-
-    # New API ==================================================================
