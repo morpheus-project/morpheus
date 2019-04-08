@@ -111,7 +111,7 @@ class Classifier:
             Classifier._run_parallel_jobs(
                 workers, is_gpu, out_dir, parallel_check_interval
             )
-            Classifier._stitch_parallel_classifications(out_dir, out_type)
+            Classifier._stitch_parallel_classifications(workers, out_dir, out_type)
 
             classification_hduls, classified = Classifier._retrieve_classifications(
                 out_dir, are_files, out_type
@@ -767,10 +767,52 @@ class Classifier:
             f.write("\n".join(text))
 
     @staticmethod
-    def _stitch_parallel_classifications(out_dir: str, out_type: str) -> None:
+    def _build_parallel_classification_structure(
+        arrs: List[np.ndarray],
+        workers: List[int],
+        batch_size: int,
+        out_dir: str,
+        out_type: str,
+    ) -> None:
+        """Sets up the subdirs and files to run the parallel classification.
+
+        Args:
+            arrs (List[np.ndarray]): List of arrays to split up in the order HJVZ
+            workers (List[int]): A list of worker ID's that can either be CUDA GPU
+                                 ID's or a list dummy numbers for cpu workers
+            batch_size (int): The batch size for Morpheus to use when classifying
+                              the input.
+            out_dir (str): the location to place the subdirs in
+
+        Returns:
+            None
+        """
+
+        shape = arrs[0].shape
+        num_workers = len(workers)
+        split_slices = Classifier._get_split_slice_generator(
+            shape, num_workers, Classifier._get_split_length(shape, num_workers)
+        )
+
+        for worker, split_slice in tqdm(zip(sorted(workers), split_slices)):
+            sub_output_dir = os.path.join(out_dir, str(worker))
+            os.mkdir(sub_output_dir)
+
+            for name, data in zip(["h", "j", "v", "z"], arrs):
+                tmp_location = os.path.join(sub_output_dir, "{}.fits".format(name))
+                fits.PrimaryHDU(data=data[split_slice, :]).writeto(tmp_location)
+
+            Classifier._make_runnable_file(sub_output_dir, batch_size, out_type)
+
+    @staticmethod
+    def _stitch_parallel_classifications(
+        workers: List[int], out_dir: str, out_type: str
+    ) -> None:
         """Stitch the seperate outputs made from the parallel classifications.
 
         Args:
+            workers (List[int]): A list of worker ID's that can either be CUDA GPU
+                                 ID's or a list dummy numbers for cpu workers
             out_dir (str): the location that contains the parallel classified
                            subdirs
             out_type (str): how to process the output from Morpheus. If
@@ -804,43 +846,27 @@ class Classifier:
                 os.path.join(out_dir, f"{f}.fits"), overwrite=True
             )
 
-    @staticmethod
-    def _build_parallel_classification_structure(
-        arrs: List[np.ndarray],
-        workers: List[int],
-        batch_size: int,
-        out_dir: str,
-        out_type: str,
-    ) -> None:
-        """Sets up the subdirs and files to run the parallel classification.
+        out_masks = []
+        if out_type in ["mean_var", "both"]:
+            out_masks.extend(["{}_mean.fits", "{}_var.fits"])
+        if out_type in ["rank_vote", "both"]:
+            out_masks.append("{}.fits")
 
-        Args:
-            arrs (List[np.ndarray]): List of arrays to split up in the order HJVZ
-            workers (List[int]): A list of worker ID's that can either be CUDA GPU
-                                 ID's or a list of
-            batch_size (int): The batch size for Morpheus to use when classifying
-                              the input.
-            out_dir (str): the location to place the subdirs in
+        for mask in out_masks:
+            for morph in helpers.LabelHelper.MORPHOLOGIES:
+                to_be_stitched = []
+                for worker_id in workers: # each worker was assinged a dir by id
+                    f_name = os.path.join(out_dir, str(worker_id), "output", mask.format(morph))
+                    n_name = os.path.join(out_dir, str(worker_id), "output", "n.fits")
+                    to_be_stitched.append((fits.getdata(f_name), fits.getdata(n_name)))
 
-        Returns:
-            None
-        """
+                new_y = sum(t[0].shape[0] for t in to_be_stitched) - (
+                    40 * (len(to_be_stitched) - 1)
+                )
+                new_x = to_be_stitched[0][0].shape[1]
 
-        shape = arrs[0].shape
-        num_workers = len(workers)
-        split_slices = Classifier._get_split_slice_generator(
-            shape, num_workers, Classifier._get_split_length(shape, num_workers)
-        )
-
-        for worker, split_slice in tqdm(zip(sorted(workers), split_slices)):
-            sub_output_dir = os.path.join(out_dir, str(worker))
-            os.mkdir(sub_output_dir)
-
-            for name, data in zip(["h", "j", "v", "z"], arrs):
-                tmp_location = os.path.join(sub_output_dir, "{}.fits".format(name))
-                fits.PrimaryHDU(data=data[split_slice, :]).writeto(tmp_location)
-
-            Classifier._make_runnable_file(sub_output_dir, batch_size, out_type)
+                combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+                start_y = 0
 
     @staticmethod
     def _run_parallel_jobs(
