@@ -404,7 +404,22 @@ class Classifier:
     def _retrieve_classifications(
         out_dir: str, are_files: bool, out_type: str
     ) -> Tuple[List[fits.HDUList], dict]:
-        pass
+
+        f_names = []
+        for morph in helpers.LabelHelper.MORPHOLOGIES:
+            if out_type in ["mean_var", "both"]:
+                f_names.extend([
+                    os.path.join(out_dir, f"{morph}_mean.fits"), 
+                    os.path.join(out_dir, f"{morph}_var.fits")
+                ])
+            if out_type in ["rank_vote", "both"]:
+                f_names.append(os.path.join(out_dir, f"{morph}.fits"))
+        
+        hduls, arrs = helpers.FitsHelper.get_files(file_names)
+
+        classied = {os.path.split(n)[1]:a for n, a in zip(f_names, arrs)}
+
+        return hduls, classified
 
     @staticmethod
     def _valid_input_types_is_str(
@@ -669,12 +684,12 @@ class Classifier:
         )
 
     @staticmethod
-    def _get_split_length(shape: List[int], num_gpus: int) -> int:
+    def _get_split_length(shape: List[int], num_workers: int) -> int:
         """Calculate the size of the sub images for classification.
 
         Args:
             shape (List[int]): the shape of the array to be split
-            num_gpus (int): the number of splits to make
+            num_workers (int): the number of splits to make
 
         Returns:
             The length of each split along axis 0
@@ -682,7 +697,7 @@ class Classifier:
         TODO: Implement splits along other axes
         """
 
-        return (shape[0] + (num_gpus - 1) * 40) // num_gpus
+        return (shape[0] + (num_workers - 1) * 40) // num_workers
 
     @staticmethod
     def _get_split_slice_generator(
@@ -752,13 +767,13 @@ class Classifier:
             "        'v':os.path.join(data_dir, 'v.fits'),",
             "        'z':os.path.join(data_dir, 'z.fits')",
             "    }",
-            "    Classifier.classify_files(h=files['h'],",
-            "                              j=files['j'],",
-            "                              v=files['v'],",
-            "                              z=files['z'],",
-            f"                              batch_size={batch_size},",
-            f"                              out_type={out_type},",
-            "                              out_dir=output_dir)",
+            "    Classifier.classify(h=files['h'],",
+            "                        j=files['j'],",
+            "                        v=files['v'],",
+            "                        z=files['z'],",
+            f"                       batch_size={batch_size},",
+            f"                       out_type={out_type},",
+            "                        out_dir=output_dir)",
             "if __name__=='__main__':",
             "    main()",
         ]
@@ -823,52 +838,106 @@ class Classifier:
         Returns:
             None
         """
-
-        for f in helpers.LabelHelper.MORPHOLOGIES:
-            to_be_stitched = []
-            for output in sorted(os.listdir(out_dir)):
-                if os.path.isdir(output):
-                    fname = os.path.join(output, "output/{}.fits".format(f))
-                    to_be_stitched.append(fits.getdata(fname)[-1, :, :])
-
-            size = to_be_stitched[0].shape
-            new_y = sum(t.shape[0] for t in to_be_stitched) - (
-                40 * (len(to_be_stitched) - 1)
-            )
-            new_x = size[1]
-            combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
-            start_y = 0
-            for t in to_be_stitched:
-                combined[start_y : start_y + t.shape[0], :] += t
-                start_y = start_y + t.shape[0] - 40
-
-            fits.PrimaryHDU(data=combined).writeto(
-                os.path.join(out_dir, f"{f}.fits"), overwrite=True
-            )
-
-        out_masks = []
+        jobs = []
         if out_type in ["mean_var", "both"]:
-            out_masks.extend(["{}_mean.fits", "{}_var.fits"])
+            jobs.append("mean_var")
         if out_type in ["rank_vote", "both"]:
-            out_masks.append("{}.fits")
+            jobs.append("rank_vote")
 
-        for mask in out_masks:
-            for morph in helpers.LabelHelper.MORPHOLOGIES:
-                to_be_stitched = []
-                for worker_id in workers:  # each worker was assinged a dir by id
-                    f_name = os.path.join(
-                        out_dir, str(worker_id), "output", mask.format(morph)
-                    )
-                    n_name = os.path.join(out_dir, str(worker_id), "output", "n.fits")
-                    to_be_stitched.append((fits.getdata(f_name), fits.getdata(n_name)))
+        for morph in helpers.LabelHelper.MORPHOLOGIES:
+            for job in jobs:
+                if job=="mean_var":
+                    to_be_stitched = []
+                    for worker_id in workers:  # each worker was assinged a dir by id
+                        dir_list = [out_dir, str(worker_id), "output"] 
+                        f_mean = os.path.join(*(dir_list + [f"{morph}_mean.fits"]))
+                        f_var = os.path.join(*(dir_list + [f"{morph}_var.fits"]))
+                        f_n = os.path.join(*(dir_list + ["n.fits"]))
 
-                new_y = sum(t[0].shape[0] for t in to_be_stitched) - (
-                    40 * (len(to_be_stitched) - 1)
-                )
-                new_x = to_be_stitched[0][0].shape[1]
+                        to_be_stitched.append((
+                            fits.getdata(f_mean),
+                            fits.getdata(f_var),
+                            fits.getdata(f_n)
+                        ))
 
-                combined = np.zeros(shape=[new_y, new_x], dtype=np.float32)
-                start_y = 0
+                    new_y = sum(t[0].shape[0] for t in to_be_stitched)
+                    new_y -= 40 * (len(to_be_stitched) - 1)
+
+                    new_x = to_be_stitched[0][0].shape[1]
+
+                    combined_mean = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+                    combined_var = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+                    combined_n = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+                    
+                    start_y = 0
+                    for new_mean, new_var, new_n in to_be_stitched:
+                        Classifier._merge_parallel_means_vars(
+                            combined_mean,
+                            combined_var,
+                            combined_n,
+                            new_mean,
+                            new_var,
+                            new_n,
+                            start_y
+                        )
+
+                        start_y += new_n.shape[0] - 40
+
+                    to_write = [
+                        (combined_mean, f"{morph}_mean.fits"),
+                        (combined_var, f"{morph}_var.fits"),
+                        (combined_n, "n.fits")
+                    ]
+
+                    for f, n in to_write:
+                        fits.PrimaryHDU(data=f).writeto(
+                            os.path.join(out_dir, n), 
+                            overwrite=True
+                        )
+
+                if job=="rank_vote":
+                    to_be_stitched = []
+                    for worker_id in workers:  # each worker was assinged a dir by id
+                        dir_list = [out_dir, str(worker_id), "output"] 
+                        f_votes = os.path.join(*(dir_list + [f"{morph}.fits"]))
+                        f_n = os.path.join(*(dir_list + ["n.fits"]))
+
+                        to_be_stitched.append((
+                            fits.getdata(f_votes),
+                            fits.getdata(f_n)
+                        ))
+
+                    new_y = sum(t[0].shape[0] for t in to_be_stitched)
+                    new_y -= 40 * (len(to_be_stitched) - 1)
+
+                    new_x = to_be_stitched[0][0].shape[1]
+
+                    combined_votes = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+                    combined_n = np.zeros(shape=[new_y, new_x], dtype=np.float32)
+
+                    start_y = 0
+                    for new_votes, new_n in to_be_stitched:
+                        Classifier._merge_parallel_rank_votes(
+                            combined_votes,
+                            combined_n,
+                            new_votes,
+                            new_n,
+                            start_y
+                        )
+
+                        start_y += new_n.shape[0] - 40
+
+                    to_write = [
+                        (combined_votes, f"{morph}.fits"),
+                        (combined_n, "n.fits")
+                    ]
+
+                    for f, n in to_write:
+                        fits.PrimaryHDU(data=f).writeto(
+                            os.path.join(out_dir, n), 
+                            overwrite=True
+                        )
+                
 
     @staticmethod
     def _merge_parallel_means_vars(
@@ -879,15 +948,15 @@ class Classifier:
         new_var: np.ndarray,
         new_n: np.ndarray,
         y_idx: int,
-    ):
-        """Merge merge means from a new piece to total.
+    ) -> None:
+        """Merge merge means/vars from a new piece to total.
 
         Derived from:
         https://www.emathzone.com/tutorials/basic-statistics/combined-variance.html
 
         Args:
-            total (np.ndarray): The array of means to add ``new`` to.
-            total_n (np.ndarray): The array of counts to add ``new_n`` to.
+            total (np.ndarray): The array of means to add ``new`` to
+            total_n (np.ndarray): The array of counts to add ``new_n`` to
             new (np.ndarray): the new means to add to ``total``
             new_n (np.ndarray): the new counts to add to ``total``
             y_idx (int): index for placement of ``new`` into ``total`` along y axis
@@ -897,11 +966,47 @@ class Classifier:
         """
         ys = slice(y_idx, y_idx + new_mean.shape[0])
 
+        x1, x2 = total_mean[ys,:].copy(), new_mean.copy()
+        s1, s2 = total_var[ys,:].copy(), new_var.copy()
+        n1, n2 = total_n[ys,:].copy(), new_n.copy()
 
+        xc = (n1 * x1 + n2 * x2) / (n1 + n2)
+
+        sc = ((n1 * (s1 + np.square(x1 - xc))) + (n2 * (s2 + np.square(x2 -xc)))) 
+        sc = sc / (n1 + n2)
+
+        total_mean[ys,:] = xc
+        total_var[ys,:] = sc
+        total_n[ys,:] = n1 + n2
 
     @staticmethod
-    def _merge_parallel_rank_votes():
-        """"""
+    def _merge_parallel_rank_votes(
+        total_votes:np.ndarray,
+        total_n:np.ndarray,
+        new_votes:np.ndarray,
+        new_n:np.ndarray,
+        y_idx:int
+    ) -> None:
+        """Merge vote counts from a new piece to total
+        
+        Args:
+            total_count (np.ndarray): The array of votes to add ``new`` to
+            total_n (np.ndarray): The array of counts to add ``new_n`` to
+            new_votes (np.ndarray): The array of votes to add to ``total``
+            new_n (np.ndarray): The array of counts to add to ``new``
+            y_idx (int): index for placement pf ``new`` into ``total`` along y axis
+
+        Returns:
+            None
+        """
+        ys = slice(y_idx, y_idx + new_votes.shape[0])
+
+        x1, x2 = total_votes[ys,:].copy(), new_votes.copy()
+        n1, n2 = total_n[ys,:].copy(), new_n.copy()
+
+        total_votes[ys,:] = ((n1 * x1) + (n2 * x2)) / (n1 + n2)
+        total_n[ys,:] = n1 + n2
+
 
     @staticmethod
     def _run_parallel_jobs(
