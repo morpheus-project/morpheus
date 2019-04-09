@@ -228,11 +228,3 @@ class TestClassifier:
 
         with pytest.raises(ValueError):
             Classifier._valid_input_types_is_str(h, j, v, z)
-
-    @staticmethod
-    def test_stitch_parallel_classifications():
-        """ """
-
-    @staticmethod
-    def test_build_parallel_classification_structure():
-        """Test _build_parallel_classification_structure."""

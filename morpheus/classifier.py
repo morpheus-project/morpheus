@@ -408,16 +408,22 @@ class Classifier:
         f_names = []
         for morph in helpers.LabelHelper.MORPHOLOGIES:
             if out_type in ["mean_var", "both"]:
-                f_names.extend([
-                    os.path.join(out_dir, f"{morph}_mean.fits"), 
-                    os.path.join(out_dir, f"{morph}_var.fits")
-                ])
+                f_names.extend(
+                    [
+                        os.path.join(out_dir, f"{morph}_mean.fits"),
+                        os.path.join(out_dir, f"{morph}_var.fits"),
+                    ]
+                )
             if out_type in ["rank_vote", "both"]:
                 f_names.append(os.path.join(out_dir, f"{morph}.fits"))
-        
-        hduls, arrs = helpers.FitsHelper.get_files(file_names)
 
-        classied = {os.path.split(n)[1]:a for n, a in zip(f_names, arrs)}
+        f_names.append(os.path.join(out_dir, "n.fits"))
+
+        hduls, arrs = helpers.FitsHelper.get_files(f_names)
+
+        classified = {
+            os.path.split(n)[1].replace(".fits", ""): a for n, a in zip(f_names, arrs)
+        }
 
         return hduls, classified
 
@@ -701,13 +707,13 @@ class Classifier:
 
     @staticmethod
     def _get_split_slice_generator(
-        shape: Tuple[int], num_gpus: int, slice_length: int
+        shape: Tuple[int], num_workers: int, slice_length: int
     ) -> Iterable[slice]:
         """Creates a generator that yields `slice` objects to split imgs.
 
         Args:
             shape (Tuple[int]): The shape of the array to be split
-            num_gpus (int): The number of splits to make
+            num_workers (int): The number of splits to make
             split_length (int): The length each slice should be
 
         Returns
@@ -717,13 +723,13 @@ class Classifier:
         """
 
         idx = 0
-        for i in range(num_gpus):
-            start_idx = max(idx - 40, 0)
+        for i in range(num_workers):
+            start_idx = max(idx - 39, 0)
 
-            if i == num_gpus - 1:
+            if i == num_workers - 1:
                 end_idx = shape[0]
             else:
-                end_idx = start_idx + slice_length
+                end_idx = start_idx + slice_length - 1
 
             idx = end_idx
 
@@ -748,14 +754,14 @@ class Classifier:
             None
         """
 
-        local = os.path.dirname(os.path.abspath(__file__))
+        local = os.path.dirname(os.path.dirname(__file__))
         text = [
             "import sys",
-            f"sys.path.append({local})",
+            f'sys.path.append("{local}")',
             "import os",
             "import numpy as np",
             "from tqdm import tqdm",
-            "from inference import Classifier",
+            "from morpheus.classifier import Classifier",
             "def main():",
             "    data_dir = '.'",
             "    output_dir = './output'",
@@ -772,8 +778,9 @@ class Classifier:
             "                        v=files['v'],",
             "                        z=files['z'],",
             f"                       batch_size={batch_size},",
-            f"                       out_type={out_type},",
+            f'                       out_type="{out_type}",',
             "                        out_dir=output_dir)",
+            "    sys.exit(0)",
             "if __name__=='__main__':",
             "    main()",
         ]
@@ -846,29 +853,31 @@ class Classifier:
 
         for morph in helpers.LabelHelper.MORPHOLOGIES:
             for job in jobs:
-                if job=="mean_var":
+                if job == "mean_var":
                     to_be_stitched = []
                     for worker_id in workers:  # each worker was assinged a dir by id
-                        dir_list = [out_dir, str(worker_id), "output"] 
+                        dir_list = [out_dir, str(worker_id), "output"]
                         f_mean = os.path.join(*(dir_list + [f"{morph}_mean.fits"]))
                         f_var = os.path.join(*(dir_list + [f"{morph}_var.fits"]))
                         f_n = os.path.join(*(dir_list + ["n.fits"]))
 
-                        to_be_stitched.append((
-                            fits.getdata(f_mean),
-                            fits.getdata(f_var),
-                            fits.getdata(f_n)
-                        ))
+                        to_be_stitched.append(
+                            (
+                                fits.getdata(f_mean),
+                                fits.getdata(f_var),
+                                fits.getdata(f_n),
+                            )
+                        )
 
                     new_y = sum(t[0].shape[0] for t in to_be_stitched)
-                    new_y -= 40 * (len(to_be_stitched) - 1)
+                    new_y -= 39 * (len(to_be_stitched) - 1)
 
                     new_x = to_be_stitched[0][0].shape[1]
 
                     combined_mean = np.zeros(shape=[new_y, new_x], dtype=np.float32)
                     combined_var = np.zeros(shape=[new_y, new_x], dtype=np.float32)
                     combined_n = np.zeros(shape=[new_y, new_x], dtype=np.float32)
-                    
+
                     start_y = 0
                     for new_mean, new_var, new_n in to_be_stitched:
                         Classifier._merge_parallel_means_vars(
@@ -878,37 +887,35 @@ class Classifier:
                             new_mean,
                             new_var,
                             new_n,
-                            start_y
+                            start_y,
                         )
 
-                        start_y += new_n.shape[0] - 40
+                        start_y += new_n.shape[0] - 39
 
                     to_write = [
                         (combined_mean, f"{morph}_mean.fits"),
                         (combined_var, f"{morph}_var.fits"),
-                        (combined_n, "n.fits")
+                        (combined_n, "n.fits"),
                     ]
 
                     for f, n in to_write:
                         fits.PrimaryHDU(data=f).writeto(
-                            os.path.join(out_dir, n), 
-                            overwrite=True
+                            os.path.join(out_dir, n), overwrite=True
                         )
 
-                if job=="rank_vote":
+                if job == "rank_vote":
                     to_be_stitched = []
                     for worker_id in workers:  # each worker was assinged a dir by id
-                        dir_list = [out_dir, str(worker_id), "output"] 
+                        dir_list = [out_dir, str(worker_id), "output"]
                         f_votes = os.path.join(*(dir_list + [f"{morph}.fits"]))
                         f_n = os.path.join(*(dir_list + ["n.fits"]))
 
-                        to_be_stitched.append((
-                            fits.getdata(f_votes),
-                            fits.getdata(f_n)
-                        ))
+                        to_be_stitched.append(
+                            (fits.getdata(f_votes), fits.getdata(f_n))
+                        )
 
                     new_y = sum(t[0].shape[0] for t in to_be_stitched)
-                    new_y -= 40 * (len(to_be_stitched) - 1)
+                    new_y -= 39 * (len(to_be_stitched) - 1)
 
                     new_x = to_be_stitched[0][0].shape[1]
 
@@ -918,26 +925,20 @@ class Classifier:
                     start_y = 0
                     for new_votes, new_n in to_be_stitched:
                         Classifier._merge_parallel_rank_votes(
-                            combined_votes,
-                            combined_n,
-                            new_votes,
-                            new_n,
-                            start_y
+                            combined_votes, combined_n, new_votes, new_n, start_y
                         )
 
-                        start_y += new_n.shape[0] - 40
+                        start_y += new_n.shape[0] - 39
 
                     to_write = [
                         (combined_votes, f"{morph}.fits"),
-                        (combined_n, "n.fits")
+                        (combined_n, "n.fits"),
                     ]
 
                     for f, n in to_write:
                         fits.PrimaryHDU(data=f).writeto(
-                            os.path.join(out_dir, n), 
-                            overwrite=True
+                            os.path.join(out_dir, n), overwrite=True
                         )
-                
 
     @staticmethod
     def _merge_parallel_means_vars(
@@ -966,29 +967,34 @@ class Classifier:
         """
         ys = slice(y_idx, y_idx + new_mean.shape[0])
 
-        x1, x2 = total_mean[ys,:].copy(), new_mean.copy()
-        s1, s2 = total_var[ys,:].copy(), new_var.copy()
-        n1, n2 = total_n[ys,:].copy(), new_n.copy()
+        x1, x2 = total_mean[ys, :].copy(), new_mean.copy()
+        s1, s2 = total_var[ys, :].copy(), new_var.copy()
+        n1, n2 = total_n[ys, :].copy(), new_n.copy()
 
-        xc = (n1 * x1 + n2 * x2) / (n1 + n2)
+        denominator = n1 + n2
 
-        sc = ((n1 * (s1 + np.square(x1 - xc))) + (n2 * (s2 + np.square(x2 -xc)))) 
-        sc = sc / (n1 + n2)
+        xc_numerator = n1 * x1 + n2 * x2
+        xc = np.where(denominator > 0, xc_numerator / denominator, 0)
 
-        total_mean[ys,:] = xc
-        total_var[ys,:] = sc
-        total_n[ys,:] = n1 + n2
+        sc_numerator = (n1 * (s1 + np.square(x1 - xc))) + (
+            n2 * (s2 + np.square(x2 - xc))
+        )
+        sc = np.where(denominator > 0, sc_numerator / denominator, 0)
+
+        total_mean[ys, :] = xc
+        total_var[ys, :] = sc
+        total_n[ys, :] = denominator
 
     @staticmethod
     def _merge_parallel_rank_votes(
-        total_votes:np.ndarray,
-        total_n:np.ndarray,
-        new_votes:np.ndarray,
-        new_n:np.ndarray,
-        y_idx:int
+        total_votes: np.ndarray,
+        total_n: np.ndarray,
+        new_votes: np.ndarray,
+        new_n: np.ndarray,
+        y_idx: int,
     ) -> None:
         """Merge vote counts from a new piece to total
-        
+
         Args:
             total_count (np.ndarray): The array of votes to add ``new`` to
             total_n (np.ndarray): The array of counts to add ``new_n`` to
@@ -1001,13 +1007,17 @@ class Classifier:
         """
         ys = slice(y_idx, y_idx + new_votes.shape[0])
 
-        x1, x2 = total_votes[ys,:].copy(), new_votes.copy()
-        n1, n2 = total_n[ys,:].copy(), new_n.copy()
+        x1, x2 = total_votes[ys, :].copy(), new_votes.copy()
+        n1, n2 = total_n[ys, :].copy(), new_n.copy()
 
-        total_votes[ys,:] = ((n1 * x1) + (n2 * x2)) / (n1 + n2)
-        total_n[ys,:] = n1 + n2
+        numerator = (n1 * x1) + (n2 * x2)
+        denominator = n1 + n2
+        mean = np.where(denominator > 0, numerator / denominator, 0)
 
+        total_votes[ys, :] = mean
+        total_n[ys, :] = denominator
 
+    # TODO: Add an informative output.
     @staticmethod
     def _run_parallel_jobs(
         workers: List[int], is_gpu: bool, out_dir: str, parallel_check_interval: int
@@ -1039,17 +1049,19 @@ class Classifier:
             else:
                 cmd_string = f"CUDA_VISIBLE_DEVICES=-1 python main.py"
 
-            sub_dir = os.path.join(out_dir, worker)
+            sub_dir = os.path.join(out_dir, str(worker))
             processes[worker] = Popen(cmd_string, shell=True, cwd=sub_dir)
 
         is_running = np.ones([len(workers)], dtype=np.bool)
-
         while is_running.any():
             for i, g in enumerate(sorted(workers)):
-                if is_running[i] and processes[g].poll():
+                if is_running[i] and (processes[g].poll() is not None):
                     is_running[i] = False
 
-            time.sleep(parallel_check_interval * 60)
+            if is_running.any():
+                time.sleep(parallel_check_interval * 60)
+            else:  # we're done we can skip sleep
+                break
 
     @staticmethod
     def _validate_parallel_params(
