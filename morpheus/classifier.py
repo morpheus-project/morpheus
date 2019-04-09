@@ -855,8 +855,10 @@ class Classifier:
         for mask in out_masks:
             for morph in helpers.LabelHelper.MORPHOLOGIES:
                 to_be_stitched = []
-                for worker_id in workers: # each worker was assinged a dir by id
-                    f_name = os.path.join(out_dir, str(worker_id), "output", mask.format(morph))
+                for worker_id in workers:  # each worker was assinged a dir by id
+                    f_name = os.path.join(
+                        out_dir, str(worker_id), "output", mask.format(morph)
+                    )
                     n_name = os.path.join(out_dir, str(worker_id), "output", "n.fits")
                     to_be_stitched.append((fits.getdata(f_name), fits.getdata(n_name)))
 
@@ -869,12 +871,45 @@ class Classifier:
                 start_y = 0
 
     @staticmethod
+    def _merge_parallel_means_vars(
+        total_mean: np.ndarray,
+        total_var: np.ndarray,
+        total_n: np.ndarray,
+        new_mean: np.ndarray,
+        new_var: np.ndarray,
+        new_n: np.ndarray,
+        y_idx: int,
+    ):
+        """Merge merge means from a new piece to total.
+
+        Derived from:
+        https://www.emathzone.com/tutorials/basic-statistics/combined-variance.html
+
+        Args:
+            total (np.ndarray): The array of means to add ``new`` to.
+            total_n (np.ndarray): The array of counts to add ``new_n`` to.
+            new (np.ndarray): the new means to add to ``total``
+            new_n (np.ndarray): the new counts to add to ``total``
+            y_idx (int): index for placement of ``new`` into ``total`` along y axis
+
+        Returns:
+            None
+        """
+        ys = slice(y_idx, y_idx + new_mean.shape[0])
+
+
+
+    @staticmethod
+    def _merge_parallel_rank_votes():
+        """"""
+
+    @staticmethod
     def _run_parallel_jobs(
         workers: List[int], is_gpu: bool, out_dir: str, parallel_check_interval: int
     ) -> None:
         """Starts and tracks parallel job runs.
 
-        Warning: This will not finish running until all subprocesses are complete
+        WARNING: This will not finish running until all subprocesses are complete
 
         Args:
             workers (List[int]): A list of worker ID's to assign to a portion of an
