@@ -22,12 +22,12 @@
 """Integration tests for Morpheus"""
 
 import os
-
+import shutil
 import numpy as np
 import pytest
 from astropy.io import fits
 
-import morpheus.tests.data_helper as dh
+from astropy.io import fits
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
@@ -37,14 +37,13 @@ class TestIntegration:
     """User level integration tests."""
 
     @staticmethod
-    def test_classify_array():
-        """User level example classification of in memory array."""
-
+    def test_classify_image_rank_vote_in_mem():
+        """Classify an image in memory using rank vote."""
         h, j, v, z = example.get_sample()
 
         expected_outs = dh.get_expected_morpheus_output()
 
-        outs = Classifier.classify_arrays(h=h, j=j, v=v, z=z, out_dir=None)
+        outs = Classifier.classify(h=h, j=j, v=v, z=z, out_dir=None)
 
         for k in outs:
             np.testing.assert_allclose(
@@ -52,54 +51,136 @@ class TestIntegration:
             )
 
     @staticmethod
-    def test_classify_file():
-        """User level example classification of in memmapped array."""
+    def test_classify_image_rank_vote_file():
+        """Classify an image from files using rank vote."""
+        local = os.path.dirname(os.path.abspath(__file__))
 
-        out_dir = "tmp"
-        if out_dir not in os.listdir():
-            os.mkdir(out_dir)
+        example.get_sample(local)
 
-        example.get_sample(out_dir=out_dir)
-        h, j, v, z = [os.path.join(out_dir, f"{b}.fits") for b in "hjvz"]
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
 
-        Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir=out_dir)
+        Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local)
 
-        expected_outs = dh.get_expected_morpheus_output()
+        outs = dh.get_expected_morpheus_output()
 
-        for k in expected_outs:
-            actual = fits.getdata(os.path.join(out_dir, f"{k}.fits"))
+        for k in outs:
             np.testing.assert_allclose(
-                actual, expected_outs[k], err_msg=f"{k} failed comparison"
+                outs[k],
+                fits.getdata(os.path.join(local, f"{k}.fits")),
+                err_msg=f"{k} failed comparison",
             )
 
-        # clean up
-        for f in os.listdir(out_dir):
-            os.remove(os.path.join(out_dir, f))
+            os.remove(os.path.join(local, f"{k}.fits"))
 
-        os.rmdir(out_dir)
+        for b in "hjvz":
+            os.remove(os.path.join(local, f"{b}.fits"))
 
     @staticmethod
-    def test_make_catalog():
-        """User level catalog."""
-
+    def test_classify_image_mean_var():
+        """Classify an image from files using mean and variance."""
         h, j, v, z = example.get_sample()
 
-        catalog = Classifier.catalog_arrays(h=h, j=j, z=z, v=v)
+        outs = Classifier.classify(h=h, j=j, v=v, z=z, out_type="mean_var")
 
-        expected_catalog = dh.get_expected_catalog()
+        expected_outs = dh.get_expected_morpheus_output(out_type="mean_var")
 
-        def element_equal(val, exp_val):
-            if isinstance(val, int):
-                assert val == exp_val
-            if isinstance(val, float):
-                np.testing.assert_almost_equal(val, exp_val)
-            if isinstance(val, list):
-                assert len(val) == len(exp_val)
+        for k in outs:
+            np.testing.assert_allclose(
+                outs[k], expected_outs[k], atol=1e-5, err_msg=f"{k} failed comparison"
+            )
 
-                for v, e in zip(val, exp_val):
-                    element_equal(v, e)
+    @staticmethod
+    def test_classify_image_mean_var_file():
+        """Classify an image from files using mean and variance."""
+        local = os.path.dirname(os.path.abspath(__file__))
 
-        assert catalog.keys() == expected_catalog.keys()
+        example.get_sample(local)
 
-        for k in catalog:
-            element_equal(catalog[k], expected_catalog[k])
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
+
+        Classifier.classify(h=h, j=j, v=v, z=z, out_dir=local, out_type="mean_var")
+
+        outs = dh.get_expected_morpheus_output(out_type="mean_var")
+
+        for k in outs:
+
+            np.testing.assert_allclose(
+                outs[k],
+                fits.getdata(os.path.join(local, f"{k}.fits")),
+                atol=1e-5,
+                err_msg=f"{k} failed comparison",
+            )
+
+            os.remove(os.path.join(local, f"{k}.fits"))
+
+        for b in "hjvz":
+            os.remove(os.path.join(local, f"{b}.fits"))
+
+
+@pytest.mark.parallel
+class TestIntegrationParallel:
+    @staticmethod
+    def test_classify_rank_vote_parallel_cpu():
+        """Classify an image in parallel with two cpus."""
+        local = os.path.dirname(os.path.abspath(__file__))
+        os.mkdir(os.path.join(local, "output"))
+        out_dir = os.path.join(local, "output")
+
+        example.get_sample(local)
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
+
+        outs = dh.get_expected_morpheus_output(out_type="rank_vote")
+
+        classified = Classifier.classify(
+            h=h,
+            j=j,
+            v=v,
+            z=z,
+            out_dir=out_dir,
+            out_type="rank_vote",
+            cpus=2,
+            parallel_check_interval=0.25,  # check every 15 seconds
+        )
+
+        for k in outs:
+            np.testing.assert_allclose(
+                outs[k], classified[k], atol=1e-5, err_msg=f"{k} failed comparison"
+            )
+
+        shutil.rmtree(out_dir)
+
+        for b in [h, j, v, z]:
+            os.remove(b)
+
+    @staticmethod
+    def test_classify_mean_var_parallel_cpu():
+        """Classify an image in parallel with two cpus."""
+        local = os.path.dirname(os.path.abspath(__file__))
+        os.mkdir(os.path.join(local, "output"))
+        out_dir = os.path.join(local, "output")
+
+        example.get_sample(local)
+        h, j, v, z = [os.path.join(local, f"{b}.fits") for b in "hjvz"]
+
+        outs = dh.get_expected_morpheus_output(out_type="mean_var")
+
+        classified = Classifier.classify(
+            h=h,
+            j=j,
+            v=v,
+            z=z,
+            out_dir=out_dir,
+            out_type="mean_var",
+            cpus=2,
+            parallel_check_interval=0.25,  # check every 15 seconds
+        )
+
+        for k in outs:
+            np.testing.assert_allclose(
+                outs[k], classified[k], atol=1e-5, err_msg=f"{k} failed comparison"
+            )
+
+        shutil.rmtree(out_dir)
+
+        for b in [h, j, v, z]:
+            os.remove(b)

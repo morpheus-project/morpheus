@@ -440,8 +440,9 @@ class LabelHelper:
             An array with the same shape as the curr_mean with the newly
             calculated mean values.
         """
-        n[n == 0] = 1
-        return curr_mean + ((x_n - curr_mean) / n * update_mask)
+        _n = n.copy()
+        _n[_n == 0] = 1
+        return curr_mean + ((x_n - curr_mean) / _n * update_mask)
 
     @staticmethod
     def iterative_variance(
@@ -570,6 +571,7 @@ class LabelHelper:
         total_shape = data["n"].shape
         for i, l in enumerate(labels):
             y, x = batch_idx[i]
+            LabelHelper.update_ns(data, [(y, x)])
             ys = slice(y, y + window_y)
             xs = slice(x, x + window_x)
 
@@ -643,11 +645,13 @@ class LabelHelper:
             None
         """
 
-        LabelHelper.update_ns(data, batch_idx)
-
-        if out_type in ["both", "mean_var"]:
+        if out_type == "mean_var":
             LabelHelper.update_mean_var(data, labels, batch_idx)
-        if out_type in ["both", "rank_vote"]:
+        elif out_type == "rank_vote":
+            LabelHelper.update_ns(data, batch_idx)
+            LabelHelper.update_rank_vote(data, labels, batch_idx)
+        else:
+            LabelHelper.update_mean_var(data, labels, batch_idx)
             LabelHelper.update_rank_vote(data, labels, batch_idx)
 
     @staticmethod
@@ -718,4 +722,6 @@ class LabelHelper:
         n = data["n"]
 
         for morph in LabelHelper.MORPHOLOGIES:
-            np.divide(data[morph], n, out=data[morph], where=n != 0)
+            m = data[morph].copy()
+            m = np.divide(m, n, out=np.zeros_like(m, dtype=np.float32), where=n != 0)
+            data[morph][:, :] = m[:, :]

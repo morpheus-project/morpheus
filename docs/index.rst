@@ -1,27 +1,21 @@
 .. Variables to use the correct hyperlinks in the readmertd build
 
 .. |classifier| replace:: :py:class:`morpheus.classifier.Classifier`
-.. |classify_arrays| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_arrays`
-.. |classify_files| replace:: :py:meth:`~morpheus.classifier.Classifier.classify_files`
-.. |catalog_arrays| replace:: :py:meth:`~morpheus.classifier.Classifier.catalog_arrays`
+.. |classify| replace:: :py:meth:`~morpheus.classifier.Classifier.classify`
+.. |segmap| replace:: :py:meth:`~morpheus.classifier.Classifier.segmap_from_classified`
+.. |catalog| replace:: :py:meth:`~morpheus.classifier.Classifier.catalog_from_classified`
+.. |colorize| replace:: :py:meth:`~morpheus.classifier.Classifier.colorize_classified`
 
-.. .. image:: https://cdn.jsdelivr.net/gh/morpheus-project/morpheus/morpheus.png
-    :target: https://github.com/morpheus-project/morpheus
-    :align: center
 
-########
-Morpheus
-########
-
-====================================
-
+MORPHEUS
+========
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
 .. include:: ../README.rst
-   :start-line: 31
+   :start-line: 25
 
 Indices and tables
 ==================
