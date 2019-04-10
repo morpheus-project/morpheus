@@ -27,7 +27,7 @@ import numpy as np
 import pytest
 from astropy.io import fits
 
-from astropy.io import fits
+import morpheus.tests.data_helper as dh
 from morpheus.classifier import Classifier
 from morpheus.data import example
 
