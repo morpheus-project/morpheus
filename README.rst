@@ -105,7 +105,6 @@ Using the output from |classify| you can:
 
 -   Make colorized version of the morphological classifications
 
-
 Segmentation Map
 ****************
 
@@ -159,6 +158,42 @@ pixel level morphological classifications. For more information see |colorize|.
     h, j, v, z = example.get_sample()
     classified = Classifier.classify(h=h, j=j, v=v, z=z)
     color_rgb = Classifier.colorize_classified(classified)
+
+Parallezation
+*************
+
+Morpheus supports simple parallezation by breaking an image into equally sized
+pieces along the y axis, classifying them in seperate processes, and stitching
+them back into a single image. Parallezation can be split into CPU jobs or
+GPU jobs. Importantly, you cannot specify both at the same time.
+
+**GPUS**
+
+The ``gpus`` argument should be a list of integers that are the ids assigned to
+the GPUS to be used. These ids can be found by using ``nvidia-smi``.
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+    from morpheus.data import example
+
+    h, j, v, z = example.get_sample()
+
+    classified = Classifier.classify(h=h, j=j, v=v, z=z, gpus=[0,1])
+
+**CPUS**
+
+The ``cpus`` argument should be an integer indicating how many processes to
+spin off.
+
+.. code-block:: python
+
+    from morpheus.classifier import Classifier
+    from morpheus.data import example
+
+    h, j, v, z = example.get_sample()
+
+    classified = Classifier.classify(h=h, j=j, v=v, z=z, cpus=2)
 
 
 Command Line Interface
@@ -220,11 +255,37 @@ Using ``--action colorize`` will classify the image and then generate a
 colorized verision of that classification and save the classification and
 colorized version to the same place.
 
+Parallezation
+*************
+
+Morpheus supports simple parallezation by breaking an image into equally sized
+pieces along the y axis, classifying them in seperate processes, and stitching
+them back into a single image. Parallezation can be split into CPU jobs or
+GPU jobs. Importantly, you cannot specify both at the same time.
+
+**GPUS**
+
+The ``gpus`` optional flag should be a comma-seperated list of ids for the
+GPUS to be used. These ids can be found by using ``nvidia-smi``.
+
+.. code-block:: bash
+
+    morpheus h.fits j.fits v.fits z.fits --gpus 0,1
+
+**CPUS**
+
+The ``cpus`` optional flag should be an integer indicating how many processes
+to spin off.
+
+.. code-block:: bash
+
+    morpheus h.fits j.fits v.fits z.fits --cpus 2
+
+
 Python Demo
 =============
 
 Try it out on `Google Colab <https://colab.research.google.com/github/morpheus-project/morpheus/blob/master/examples/example_array.ipynb>`_!
-
 
 Documentation
 =============
