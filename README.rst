@@ -57,17 +57,28 @@ For GPU support:
 
 .. code-block:: bash
 
-    docker run --runtime=nvidia -it morpheusastro/morpheus:0.3-gpu
+    docker run --runtime=nvidia -it morpheusastro/morpheus:0.4-gpu
 
 For CPU only:
 
 .. code-block:: bash
 
-    docker run -it morpheusastro/morpheus:0.3-cpu
+    docker run -it morpheusastro/morpheus:0.4-cpu
 
 
 Usage
 =====
+
+There are two ways to use morpheus on your own images:
+
+1. Using the python API
+
+The |classifier| class is the primary way to use Morpheus within a python script.
+
+
+
+
+
 
 The main way to interact with Morpheus is by using the |classifier|
 class. Using this class you can classify astronomical images in 2 ways:
