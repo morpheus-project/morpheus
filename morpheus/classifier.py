@@ -46,16 +46,16 @@ class Classifier:
     """Primary interface for the use of Morpheus.
 
     Images can be classified by calling
-    :py:meth:`~morpheus.classifier.Classifier.classify_arrays` and passing
-    numpy arrays or by calling
-    :py:meth:`~morpheus.classifier.Classifier.classify_files` and passing string
-    FITS file locations.
+    :py:meth:`~morpheus.classifier.Classifier.classify` and passing
+    numpy arrays or string FITS file locations.
 
     After an image this this class offers some post processing functionality by
     generating segmentation maps using
-    :py:meth:`~morpheus.classifier.Classifier.make_segmap` and colorized
+    :py:meth:`~morpheus.classifier.Classifier.segmap_from_classified`, colorized
     morphological classifications using
-    :py:meth:`~morpheus.classifier.Classifier.colorize_rank_vote_output`
+    :py:meth:`~morpheus.classifier.Classifier.colorize_classification`, and
+    generating catalogs using
+    :py:meth:`~morpheus.classifier.Classifier.catalog_from_classified`.
 
     For more examples see the `documentation <https://morpheus-astro.readthedocs.io/>`_.
     """
@@ -63,11 +63,6 @@ class Classifier:
     __graph = None
     __session = None
     __X = tf.placeholder(tf.float32, shape=[None, 40, 40, 4])
-
-    # NEW API ==================================================================
-    # Refactoring with the following goals:
-    # - unify classify interface
-    # - extras should work with classified arrays not with the raw inputs
 
     @staticmethod
     def classify(
@@ -80,8 +75,36 @@ class Classifier:
         out_type: str = "rank_vote",
         gpus: List[int] = None,
         cpus: int = None,
-        parallel_check_interval: int = 15,
+        parallel_check_interval: float = 1,
     ) -> dict:
+        """Generates per-pixel classifications from input images.
+
+        Args:
+            h (Union[np.ndarray, str]): The H band image or the path to it
+            j (Union[np.ndarray, str]): The J band image or the path to it
+            v (Union[np.ndarray, str]): The V band image or the path to it
+            z (Union[np.ndarray, str]): The Z band image or the path to it
+            out_dir (str): If provided, a directory to save the output to
+            batch_size (int): The size of the batches to use when classifying the input
+            out_type (str): The method by which to aggregate classifications
+                            for a single pixel. Can be one of "rank_vote",
+                            "mean_var", or "both"
+            gpus (List[int]): The GPU ids to use for parallel classification
+                              the ids can be found using ``nvidia-smi``
+            cpus (int): The numbe of cpus to use for parallel classification.
+            parallel_check_interval (float): If running a parallel job, how often
+                                           to check on the running sub-processes
+                                           in minutes.
+
+        Returns:
+            Dictionary containing the classification output for the given input
+
+        Raises:
+            ValueError if both gpus and cpus are given
+            ValueError if mixed string and numpy arrays are give for h, j, v, z
+            ValueError if h, j, v, or z are None
+        """
+
         Classifier._variables_not_none(["h", "j", "v", "z"], [h, j, v, z])
         are_files = Classifier._valid_input_types_is_str(h, j, v, z)
         workers, is_gpu = Classifier._validate_parallel_params(gpus, cpus)
@@ -95,7 +118,7 @@ class Classifier:
             hduls = []
 
         if len(workers) == 1:
-            classified = Classifier.classify_arrays(
+            classified = Classifier._classify_arrays(
                 h=h,
                 j=j,
                 v=v,
@@ -114,7 +137,7 @@ class Classifier:
             Classifier._stitch_parallel_classifications(workers, out_dir, out_type)
 
             classification_hduls, classified = Classifier._retrieve_classifications(
-                out_dir, are_files, out_type
+                out_dir, out_type
             )
 
             hduls.extend(classification_hduls)
@@ -222,7 +245,7 @@ class Classifier:
 
     # TODO: make the output file with the FITS helper if the output dir is used.
     @staticmethod
-    def segmap_from_classifed(
+    def segmap_from_classified(
         classified: dict,
         flux: np.ndarray,
         out_dir: str = None,
@@ -402,7 +425,7 @@ class Classifier:
 
     @staticmethod
     def _retrieve_classifications(
-        out_dir: str, are_files: bool, out_type: str
+        out_dir: str, out_type: str
     ) -> Tuple[List[fits.HDUList], dict]:
 
         f_names = []
@@ -451,13 +474,12 @@ class Classifier:
     # NEW API ==================================================================
 
     @staticmethod
-    def classify_arrays(
+    def _classify_arrays(
         h: np.ndarray = None,
         j: np.ndarray = None,
         z: np.ndarray = None,
         v: np.ndarray = None,
         out_dir: str = None,
-        pad: bool = False,
         batch_size: int = 1000,
         out_type: str = "rank_vote",
     ) -> Dict:
@@ -470,10 +492,7 @@ class Classifier:
             v (np.ndarray): the V band values for an iamge
             out_dir (str): The location where to save the output files
                            if None returns the output in memory only.
-            pad (bool): if True pad the input with zeros, so that every pixel is
-                        classified the same number of times. If False, don't pad.
-                        (Not implemented)
-            batch_size (int): the number of image sections to process at a time
+            batch_size (int): the number of image sections blackto process at a time
             out_type (str): how to process the output from Morpheus. If
                             'mean_var' record output using mean and variance, If
                             'rank_vote' record output as the normalized vote
@@ -493,9 +512,6 @@ class Classifier:
 
         mean_var = out_type in ["mean_var", "both"]
         rank_vote = out_type in ["rank_vote", "both"]
-
-        if pad:
-            raise NotImplementedError("pad=True has not been implemented yet")
 
         shape = h.shape
 
@@ -1020,7 +1036,7 @@ class Classifier:
     # TODO: Add an informative output.
     @staticmethod
     def _run_parallel_jobs(
-        workers: List[int], is_gpu: bool, out_dir: str, parallel_check_interval: int
+        workers: List[int], is_gpu: bool, out_dir: str, parallel_check_interval: float
     ) -> None:
         """Starts and tracks parallel job runs.
 
@@ -1033,9 +1049,9 @@ class Classifier:
                            be used as an argument in CUDA_VISIBLE_DEVICES. If False,
                            then the ID's are assocaited with CPU workers
             out_dir (str): the location with the partitioned data
-            parallel_check_interval (int): If gpus are given, then this is the number
-                                           of minutes to wait between polling each
-                                           subprocess for completetion
+            parallel_check_interval (float): If gpus are given, then this is the number
+                                             of minutes to wait between polling each
+                                             subprocess for completetion
 
         Returns:
             None

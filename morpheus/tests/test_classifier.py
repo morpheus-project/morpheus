@@ -148,7 +148,7 @@ class TestClassifier:
 
         expected_segmap = dh.get_expected_segmap()["segmap"]
 
-        actual_segmap = Classifier.segmap_from_classifed(data, h, mask=mask)
+        actual_segmap = Classifier.segmap_from_classified(data, h, mask=mask)
 
         np.testing.assert_array_equal(expected_segmap, actual_segmap)
 
