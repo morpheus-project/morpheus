@@ -118,7 +118,7 @@ def _parse_args(argv):
 
 
 def main():
-    args = _parse_args(sys.argv)
+    args = _parse_args(sys.argv[1:])
 
     if args.action == "None":
         Classifier.classify(
@@ -143,7 +143,7 @@ def main():
             cpus=args.cpus,
         )
 
-        segmap = Classifier.segmap_from_classifed(
+        segmap = Classifier.segmap_from_classified(
             classified, args.h, out_dir=args.out_dir
         )
 
@@ -165,7 +165,7 @@ def main():
             cpus=args.cpus,
         )
 
-        Classifier.segmap_from_classifed(classified, args.h, out_dir=args.out_dir)
+        Classifier.segmap_from_classified(classified, args.h, out_dir=args.out_dir)
     elif args.action == "colorize":
         classified = Classifier.classify(
             h=args.h,
@@ -191,7 +191,7 @@ def main():
             cpus=args.cpus,
         )
 
-        segmap = Classifier.segmap_from_classifed(
+        segmap = Classifier.segmap_from_classified(
             classified, args.h, out_dir=args.out_dir
         )
 

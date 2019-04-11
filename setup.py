@@ -20,7 +20,7 @@ URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = "0.4.0"
+VERSION = "0.4.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -106,9 +106,7 @@ setup(
     packages=find_packages(exclude=("morpheus.tests",)),
     # If your package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
+    entry_points={"console_scripts": ["morpheus=morpheus.__main__:main"]},
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,

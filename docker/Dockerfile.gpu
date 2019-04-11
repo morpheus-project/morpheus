@@ -22,7 +22,7 @@ RUN apt-get update \
 
 RUN python3.6 -m pip install --no-cache-dir -U pip
 RUN python3.6 -m pip install --no-cache-dir -U setuptools
-RUN python3.6 -m pip install --no-cache-dir -U numpy==1.15
+RUN python3.6 -m pip install --no-cache-dir -U numpy
 RUN python3.6 -m pip install --no-cache-dir -U tensorflow-gpu
 RUN python3.6 -m pip install --no-cache-dir -U morpheus-astro
 
