@@ -1,4 +1,7 @@
 language: python
+branches:
+  only:
+    - master
 python:
   - "3.6"
 install:
@@ -7,7 +10,12 @@ install:
   - pip install pytest
   - pip install pytest-cov
   - pip install codecov
+  - pip install twine
 script:
   - pytest --cov=morpheus
 after_success:
   - codecov
+  - python travis_deploy.py
+env:
+  global:
+    secure: L56QSi7KPd2Fe6yAy/cO2coKWk9cIdfvq6+u6J6XE+f5VFRexwTC+KdJjb/Krb7UJf53jQtec03i94RFJFttYjgHrK6E6ykS21X+6StaCcPMI3N3QwCLlEzTDYgjLw9XgdWuuefHL0LCjDXEZld5sBkCMvN5NiUV2N1vJb10ekbKXP4mfWdiFn2oRab+oICcSmhqQ8pBj0k+snUdY/1DYTKwtYMXEb6TfrgcQP/sLTH2rWVE5DrOKhL7ruwV6mvJOvTB5zOku6OzHTnbogOq6Q4p5DjqE8fo8Gz65r7bMel2bMAcSx5zdRpGcbkhgtak+40hCswi4E0PXl/DYqZGTJSwLL4eaXpTvaXQYLHxLHFymbRnEtoizzc6r7y+mC33Qpz+GymqFzpyag+lP3M8wpx3oHq1VRb0Ue4ivyTQmHL8384CWUle7NbH43ZQwJm8Niiz1gv3zfENDujm7o65QQYnq3bSaAEznCeK43uN8jlTCeyaXAKJuatBZ6jrcacqUvxEnvqy9TGQNoWHnKm6ODKwhoqN/DdwuOGC/iOEspEzhH1DrfArM24nbyyOKLOyruZTtzg+qudng0IRdvrW9kqOAKp46hB3CUhHvJP8R7sWDLuhpUezROfAwEp6tCACl27i2wXGEMrD2vJxL1PvhMfQSN44sv5jWvcpVja6RbM=

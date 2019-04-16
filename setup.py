@@ -20,7 +20,6 @@ URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = "0.4.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -54,6 +53,8 @@ try:
 except FileNotFoundError:
     long_description = DESCRIPTION
 
+with open("./morpheus/__version__.py", "r") as f:
+    version = f.readlines()[0].strip().replace("\"", "")
 
 class UploadCommand(Command):
     """Support setup.py upload."""
@@ -86,7 +87,7 @@ class UploadCommand(Command):
         os.system("twine upload dist/*")
 
         self.status("Pushing git tags…")
-        os.system("git tag v{0}".format(VERSION))
+        os.system("git tag v{0}".format(version))
         os.system("git push --tags")
 
         sys.exit()
@@ -95,7 +96,7 @@ class UploadCommand(Command):
 # Where the magic happens:
 setup(
     name=NAME,
-    version=VERSION,
+    version=version,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/x-rst",
