@@ -53,7 +53,7 @@ def get_version():
     micro += 1
 
     with open(version_file, "w") as f:
-        f.write(f"{major}.{minor}.{micro}")
+        f.write(f"\"\"\"{major}.{minor}.{micro}\"\"\"")
 
     ver = Version(major=major, minor=minor, micro=micro)
 
