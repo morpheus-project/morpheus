@@ -39,7 +39,7 @@ from collections import namedtuple
 GIT_TRAVIS_UNAME = "morpheus-travis"
 DOCKER_TRAVIS_UNAME = "morpheustravis"  # docker supports only alphanumeric
 PYPI_TRAVIS_UNAME = "morpheus-travis"
-TRAVIS_PWD = os.environ.get("TRAVIS_PWD")
+TRAVIS_PWD = os.environ["TRAVIS_PWD"]
 
 LOCAL = os.environ.get("TRAVIS_BUILD_DIR")
 
@@ -90,13 +90,13 @@ def github_tag_and_push(ver: Version):
         f'git commit -a -m "[skip travis] TRAVIS:Setting version to {ver.major}.{ver.minor}.{ver.micro}"'
     )
     os.system(
-        f"git push origin https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
+        f"git push --all https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
     )
 
     print("Pushing tag to github")
     os.system(f"git tag v{ver.major}.{ver.minor}.{ver.micro}")
     os.system(
-        f"git push --tags origin https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
+        f"git push --tags https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
     )
 
 
