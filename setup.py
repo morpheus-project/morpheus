@@ -54,7 +54,8 @@ except FileNotFoundError:
     long_description = DESCRIPTION
 
 with open("./morpheus/__version__.py", "r") as f:
-    version = f.readlines()[0].strip().replace("\"", "")
+    version = f.readlines()[0].strip().replace('"', "")
+
 
 class UploadCommand(Command):
     """Support setup.py upload."""

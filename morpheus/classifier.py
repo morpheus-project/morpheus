@@ -341,9 +341,7 @@ class Classifier:
             labeled = Classifier._deblend(labeled, flux, min_distance)
 
         if out_dir:
-            fits.PrimaryHDU(data=labeled).writeto(
-                os.path.join(out_dir, "segmap.fits")
-            )
+            fits.PrimaryHDU(data=labeled).writeto(os.path.join(out_dir, "segmap.fits"))
 
         return labeled
 
