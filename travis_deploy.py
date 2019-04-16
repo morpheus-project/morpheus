@@ -86,10 +86,8 @@ def github_tag_and_push(ver: Version):
     print("Pushing version file to github")
     os.system('git config --global user.email "build@travis-ci.com"')
     os.system('git config --global user.name "Travis CI"')
-    ver_file = os.path.join(LOCAL, "morpheus/__version__.py")
-    os.system(f"git add {ver_file}")
     os.system(
-        f'git commit -m "[skip travis] TRAVIS:Setting version to {ver.major}.{ver.minor}.{ver.micro}"'
+        f'git commit -a -m "[skip travis] TRAVIS:Setting version to {ver.major}.{ver.minor}.{ver.micro}"'
     )
     os.system(
         f"git push origin https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
