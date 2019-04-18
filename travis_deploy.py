@@ -21,16 +21,18 @@
 # ==============================================================================
 """Used in a Travis build to deploy pypi and docker.
 
+BE CAREFUL WHEN ADDING PRINT STATEMENTS TO THIS SCRIPT!!!!
+You can leak secrets to the travis log.
+
 This performs the following steps:
 
 1. Get the current version of the package from morpheus.__version__.py
 2. Increment the microversion by 1 and save to morpheus.__version__.py
 3. Run setup.py sdist bdist_wheel
-4 Push to pypi with twine
+4. Push to pypi with twine
 5. Git tag build with version and push
 6. Build docker image for cpu and gpu
 7. Push docker images
-
 """
 
 import os
@@ -90,13 +92,12 @@ def github_tag_and_push(ver: Version):
         f'git commit -a -m "[skip travis] TRAVIS:Setting version to {ver.major}.{ver.minor}.{ver.micro}"'
     )
     os.system(
-        f"git push https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git master"
-    )
+        f"git push https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git HEAD:master"    )
 
     print("Pushing tag to github")
     os.system(f"git tag v{ver.major}.{ver.minor}.{ver.micro}")
     os.system(
-        f"git push --tags https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
+        f"git push --tags https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git "
     )
 
 

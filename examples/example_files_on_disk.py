@@ -29,4 +29,4 @@ from morpheus.data import example
 example.get_sample(out_dir=".")
 h, j, v, z = [f"{band}.fits" for band in "hjvz"]
 
-Classifier.classify_files(h=h, j=j, v=v, z=z, out_dir=".")
+Classifier.classify(h=h, j=j, v=v, z=z, out_dir=".")
