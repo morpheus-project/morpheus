@@ -90,7 +90,7 @@ def github_tag_and_push(ver: Version):
         f'git commit -a -m "[skip travis] TRAVIS:Setting version to {ver.major}.{ver.minor}.{ver.micro}"'
     )
     os.system(
-        f"git push --all https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git"
+        f"git push https://{GIT_TRAVIS_UNAME}:{TRAVIS_PWD}@github.com/morpheus-project/morpheus.git master"
     )
 
     print("Pushing tag to github")
