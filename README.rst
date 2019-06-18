@@ -55,13 +55,13 @@ For GPU support:
 
 .. code-block:: bash
 
-    docker run --runtime=nvidia -it morpheusastro/morpheus:0.4-gpu
+    docker run --runtime=nvidia -it morpheusastro/morpheus:lastest-gpu
 
 For CPU only:
 
 .. code-block:: bash
 
-    docker run -it morpheusastro/morpheus:0.4-cpu
+    docker run -it morpheusastro/morpheus:latest-cpu
 
 
 Usage
