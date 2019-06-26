@@ -24,6 +24,21 @@ section, summary, time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;}
 
+.iframe-help{
+	display: inline-block;
+	margin: 0 0 2em 0;
+	width: inherit;
+}
+
+.iframe-help iframe {
+	position: relative;
+    top: 0;
+	left: 0;
+	width: 80%;
+	margin: 0 0 2em 0;
+    border: 0;
+}
+
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
 	display: block;}
