@@ -34,8 +34,9 @@ section, summary, time, mark, audio, video {
 	position: relative;
     top: 0;
 	left: 0;
-	width: 80%;
-	margin: 0 0 2em 0;
+	width: 100%;
+	height: 21.5vw;
+	/* margin: 0 0 2em 0; */
     border: 0;
 }
 
