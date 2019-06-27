@@ -695,7 +695,7 @@ class LabelHelper:
 
     @staticmethod
     def make_n_array(shape: Tuple[int, int]) -> dict:
-        """Create output array for use in in-memory classification.
+        """Create an output array for use in in-memory classification.
 
         Args:
             shape (Tuple[int]): The 2d (width, height) for to create the arrays

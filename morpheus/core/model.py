@@ -34,10 +34,10 @@ import morpheus.core.unet
 class Morpheus(morpheus.core.unet.Model):
     """The main class for the Morpheus model.
 
-    This class takes an TensorFlow HParams object as an argument and it should
+    This class takes a TensorFlow HParams object as an argument and it should
     contain the following properties:
 
-    Note if you are using a pretrained weights for inference only you need
+    Note if you are using pretrained weights for inference only you need
     to mock the dataset object and use the default hparams.
 
     You can mock the dataset object calling Morpheus.mock_dataset().

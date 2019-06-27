@@ -43,7 +43,7 @@ import morpheus.core.model as model
 
 
 class Classifier:
-    """Primary interface for the use of Morpheus.
+    """The primary interface for the use of Morpheus.
 
     Images can be classified by calling
     :py:meth:`~morpheus.classifier.Classifier.classify` and passing
@@ -57,7 +57,7 @@ class Classifier:
     generating catalogs using
     :py:meth:`~morpheus.classifier.Classifier.catalog_from_classified`.
 
-    For more examples see the `documentation <https://morpheus-astro.readthedocs.io/>`_.
+    For more examples, see the `documentation <https://morpheus-astro.readthedocs.io/>`_.
     """
 
     __graph = None
@@ -91,7 +91,7 @@ class Classifier:
                             "mean_var", or "both"
             gpus (List[int]): The GPU ids to use for parallel classification
                               the ids can be found using ``nvidia-smi``
-            cpus (int): The numbe of cpus to use for parallel classification.
+            cpus (int): The number of cpus to use for parallel classification.
             parallel_check_interval (float): If running a parallel job, how often
                                            to check on the running sub-processes
                                            in minutes.
@@ -101,7 +101,7 @@ class Classifier:
 
         Raises:
             ValueError if both gpus and cpus are given
-            ValueError if mixed string and numpy arrays are give for h, j, v, z
+            ValueError if mixed string and numpy arrays are given for h, j, v, z
             ValueError if h, j, v, or z are None
         """
 
@@ -160,13 +160,13 @@ class Classifier:
         Args:
             classified (dict): A dictionary containing the output from morpheus.
             flux (np.ndarray): The corresponding flux image in H band
-            segmap (np.ndarray): A labelled segmap where every pixel with a
+            segmap (np.ndarray): A labeled segmap where every pixel with a
                           value > 0 is associated with a source.
             aggregation_scheme (func): Function that takes three arguments `classified`,
                                        `flux`, and `segmap`, same as this
                                        function, then returns a numpy array
                                        containing the morphological classification
-                                       in the following order-shperoid, disk,
+                                       in the following order-spheroid, disk,
                                        irregular, and point source/compact. If
                                        None, then the flux weighting scheme
                                        in
@@ -256,14 +256,14 @@ class Classifier:
         """Generate a segmentation map from the classification output.
 
             Segmentation maps are generated using the background classification
-            in ``data``. The segmenatation maps are generated using the
+            in ``data``. The segmentation maps are generated using the
             `watershed algorithm <https://en.wikipedia.org/wiki/Watershed_(image_processing)>`_
-            in conjunction with a couple heuristics for simple deblending. The
+            in conjunction with heuristics for simple deblending. The
             steps to generate the segmentation map are as follows:
 
             **Inputs**: Background pixel classifications *b* and H band flux *h*
 
-            **Outpus**: A segmentation map *sm*
+            **Outputs**: A segmentation map *sm*
 
             **Algorithm**:
 
@@ -281,7 +281,7 @@ class Classifier:
 
             *s* = `sobel <https://en.wikipedia.org/wiki/Sobel_operator>`_ (*b*)
 
-            *sm* = apply waterhshed on *s* with markers *m*
+            *sm* = apply watershed on *s* with markers *m*
 
             2. Simple Deblending
 
@@ -307,7 +307,7 @@ class Classifier:
             out_dir (str): A path to save the segmap in.
             min_distance (int): The minimum distance for deblending
             mask (np.ndarry): A boolean mask indicating which pixels
-            deblend (bool): If ``True``, perform delblending as described in 2.
+            deblend (bool): If ``True``, perform deblending as described in 2.
                             in the algorithm description. If ``False`` return
                             segmap without deblending.
 
@@ -349,7 +349,7 @@ class Classifier:
     def colorize_classified(
         classified: dict, out_dir: str = None, hide_unclassified: bool = True
     ) -> np.ndarray:
-        """Makes a color images from the classification output.
+        """Makes a color image from the classification output.
 
         The colorization scheme is defined in HSV and is as follows:
 
@@ -359,11 +359,11 @@ class Classifier:
         * Point Source = Yellow
 
         The hue is set to be the color associated with the highest ranked class
-        for a given pixel. The saturation is set to be difference between the
+        for a given pixel. The saturation is set to be the difference between the
         highest ranked class and the second highest ranked class for a given
-        pixel. For example if the top two classes have nearly equal values given
+        pixel. For example, if the top two classes have nearly equal values given
         by the classifier, then the saturation will be low and the pixel will
-        appear more white. If the the top two classes have very different
+        appear more white. If the top two classes have very different
         values, then the saturation will be high and the pixel's color will be
         vibrant and not white. The value for a pixel is set to be 1-bkg, where
         bkg is value given to the background class. If the background class has
@@ -374,7 +374,7 @@ class Classifier:
         Args:
             data (dict): A dictionary containing the output from Morpheus.
             out_dir (str): a path to save the image in.
-            hide_unclassified (bool): If true black out the edges of the image
+            hide_unclassified (bool): If true, black out the edges of the image
                                       that are unclassified. If false, show the
                                       borders as white.
 
@@ -1172,9 +1172,9 @@ class Classifier:
     def aggregation_scheme_flux_weighted(
         data: dict, flux: np.ndarray, segmap: np.ndarray
     ) -> List[float]:
-        """Aggreates pixel level morphological classifcations to the source level.
+        """Aggregates pixel level morphological classifications to the source level.
 
-        Uses a flux weighted mean of the pixel level morphologies to calculate
+        Uses a flux-weighted mean of the pixel level morphologies to calculate
         the aggregate source level morphology.
 
         Args:
