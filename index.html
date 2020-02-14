@@ -45,14 +45,21 @@
 								<a href="https://arxiv.org/abs/1906.11248">ArXiv</a>
 							</p>
 
-                            <p>We present Morpheus, a new model for generating pixel level morphological classifications of astronomical
-                               sources. Morpheus leverages advances in deep learning to perform source detection, source segmentation, and
-                               morphological classification pixel-by-pixel via a semantic segmentation algorithm adopted from the field of
-                               computer vision. By utilizing morphological information about the flux of real astronomical sources during object detection, Morpheus shows resiliency to false positive identifications of sources. We evaluate Morpheus by
-                               performing source detection, source segmentation, morphological classification on the Hubble Space Telescope
-                               data in the GOODS South field, and demonstrate a high completeness in recovering known 3D-HST sources
-                               with H &lt; 26 AB. We release the code publicly, provide online demonstrations, and present an interactive
-                               visualization of the Morpheus results in GOODS South.
+                            <p>
+								We present Morpheus, a new model for generating pixel-level
+								morphological classifications of astronomical sources. Morpheus leverages
+								advances in deep learning to perform source detection, source segmentation, and
+								morphological classification pixel-by-pixel via a semantic segmentation
+								algorithm adopted from the field of computer vision. By utilizing morphological
+								information about the flux of real astronomical sources during object detection,
+								Morpheus shows resiliency to false-positive identifications of
+								sources. We evaluate Morpheus by performing source detection, source
+								segmentation, morphological classification on the Hubble Space Telescope
+								data in the five CANDELS fields with a focus on the GOODS South field,
+								and demonstrate a high completeness in recovering known GOODS South
+								3D-HST sources with H&lt;26 AB. We release the code publicly, provide
+								online demonstrations, and present an interactive visualization of the
+								Morpheus results in GOODS South.
                             </p>
 							<ul class="actions">
 								<li><a href="#one" class="button scrolly">Learn more</a></li>
@@ -84,6 +91,8 @@
 						<div class="inner">
 							<h2>Data Release</h2>
 							<p>The following data products are released with the paper:</p>
+
+							<h3>COSMOS</h3>
 							<div class="table-wrapper">
 								<table>
 									<thead>
@@ -94,56 +103,285 @@
 									</thead>
 									<tbody>
 										<tr>
-											<td><a href="./data-release/spheroid.html">morpheus_GOODS-S_spheroid.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/spheroid.html">morpheus_COSMOS_spheroid.v1.0.fits</a></td>
 											<td>The pixel-level classifications for the <em>spheroid</em> class</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/disk.html">morpheus_GOOD-S_disk.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/disk.html">morpheus_COSMOS_disk.v1.0.fits</a></td>
 											<td>The pixel-level classifications for the <em>disk</em> class</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/irregular.html">morpheus_GOOD-S_irregular.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/irregular.html">morpheus_COSMOS_irregular.v1.0.fits</a></td>
 											<td>The pixel-level classifications for the <em>irregular</em> class</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/ps-compact.html">morpheus_GOOD-S_ps_compact.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/ps-compact.html">morpheus_COSMOS_ps_compact.v1.0.fits</a></td>
 											<td>The pixel-level classifications for the <em>point source/compact</em> class</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/background.html">morpheus_GOOD-S_background.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/background.html">morpheus_COSMOS_background.v1.0.fits</a></td>
 											<td>The pixel-level classifications for the <em>background</em> class</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/mask.html">morpheus_GOOD-S_mask.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/mask.html">morpheus_COSMOS_mask.v1.0.fits</a></td>
 											<td>Binary pixel map indicating classified pixels in the survey</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/3dhst-segmap.html">morpheus GOODS-S_3dhst_segmap.v1.0.fits</a></td>
-											<td>Segmentation map generated using Morpheus and the 3DHST source locations</td>
-										</tr>
-										<tr>
-											<td><a href="./data-release/segmap.html">morpheus_GOODS-S_segmap.v1.0.fits</a></td>
+											<td><a href="./data-release/cosmos/segmap.html">morpheus_COSMOS_segmap.v1.0.fits</a></td>
 											<td>Segmentation map generated using Morpheus</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/vac/value-added-catalog.csv.html">morpheus_GOODS-S_3dhst_catalog.v1.0.csv</a></td>
+											<td><a href="./data-release/cosmos/3dhst-segmap.html">morpheus_COSMOS_3dhst_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus informed by 3D-HST catalog</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/cosmos/value-added-catalog.html">morpheus_COSMOS_3dhst_catalog.v1.0.csv</a></td>
 											<td>Morphological classifications for objects in the 3DHST Survey (CSV)</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/vac/value-added-catalog.txt.html">morpheus_GOODS-S_3dhst_catalog.v1.0.txt</a></td>
+											<td><a href="./data-release/cosmos/value-added-catalog-mrt.html">morpheus_COSMOS_3dhst_catalog.v1.0.txt</a></td>
 											<td>Morphological classifications for objects in the 3DHST Survey (Machine Readable Table)</td>
 										</tr>
 										<tr>
-											<td><a href="./data-release/color-image.html">morpheus_GOODS_morph_color.v1.0.png.tar.gz</a></td>
-											<td>Color image composite of morphological classifications</td>
-										</tr>
-										<tr>
-											<td><a href="./data-release/all.html">morpheus_GOODS-S_all.v1.0.tar.gz</a></td>
+											<td><a href="./data-release/cosmos/all.html">morpheus_COSMOS_all.v1.0.tar.gz</a></td>
 											<td>All of the above files compressed together</td>
 										</tr>
 									</tbody>
 								</table>
 							</div>
+
+							<h3>EGS</h3>
+							<div class="table-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<th>File</th>
+											<th>Description</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><a href="./data-release/egs/spheroid.html">morpheus_EGS_spheroid.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>spheroid</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/disk.html">morpheus_EGS_disk.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>disk</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/irregular.html">morpheus_EGS_irregular.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>irregular</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/ps-compact.html">morpheus_EGS_ps_compact.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>point source/compact</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/background.html">morpheus_EGS_background.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>background</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/mask.html">morpheus_EGS_mask.v1.0.fits</a></td>
+											<td>Binary pixel map indicating classified pixels in the survey</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/segmap.html">morpheus_EGS_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/3dhst-segmap.html">morpheus_EGS_3dhst_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus informed by 3D-HST catalog</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/value-added-catalog.html">morpheus_EGS_3dhst_catalog.v1.0.csv</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (CSV)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/value-added-catalog-mrt.html">morpheus_EGS_3dhst_catalog.v1.0.txt</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (Machine Readable Table)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/egs/all.html">morpheus_EGS_all.v1.0.tar.gz</a></td>
+											<td>All of the above files compressed together</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<h3>GOODS North</h3>
+							<div class="table-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<th>File</th>
+											<th>Description</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><a href="./data-release/goods-n/spheroid.html">morpheus_GOODS-N_spheroid.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>spheroid</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/disk.html">morpheus_GOOD-N_disk.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>disk</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/irregular.html">morpheus_GOOD-N_irregular.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>irregular</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/ps-compact.html">morpheus_GOOD-N_ps_compact.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>point source/compact</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/background.html">morpheus_GOOD-N_background.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>background</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/mask.html">morpheus_GOOD-N_mask.v1.0.fits</a></td>
+											<td>Binary pixel map indicating classified pixels in the survey</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/segmap.html">morpheus_GOODS-N_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/3dhst-segmap.html">morpheus_GOODS-N_3dhst_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus informed by 3D-HST catalog</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/value-added-catalog.csv.html">morpheus_GOODS-n_3dhst_catalog.v1.0.csv</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (CSV)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/value-added-catalog-mrt.html">morpheus_GOODS-n_3dhst_catalog.v1.0.txt</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (Machine Readable Table)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-n/all.html">morpheus_GOODS-S_all.v1.0.tar.gz</a></td>
+											<td>All of the above files compressed together</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<h3>GOODS South</h3>
+							<div class="table-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<th>File</th>
+											<th>Description</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><a href="./data-release/good-s/spheroid.html">morpheus_GOODS-S_spheroid.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>spheroid</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/disk.html">morpheus_GOOD-S_disk.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>disk</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/irregular.html">morpheus_GOOD-S_irregular.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>irregular</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/ps-compact.html">morpheus_GOOD-S_ps_compact.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>point source/compact</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/background.html">morpheus_GOOD-S_background.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>background</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/mask.html">morpheus_GOOD-S_mask.v1.0.fits</a></td>
+											<td>Binary pixel map indicating classified pixels in the survey</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/segmap.html">morpheus_GOODS-S_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/3dhst-segmap.html">morpheus GOODS-S_3dhst_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus and the 3DHST source locations</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/goods-s/value-added-catalog.html">morpheus_GOODS-S_3dhst_catalog.v1.0.csv</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (CSV)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/value-added-catalog-mrt.html">morpheus_GOODS-S_3dhst_catalog.v1.0.txt</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (Machine Readable Table)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/good-s/all.html">morpheus_GOODS-S_all.v1.0.tar.gz</a></td>
+											<td>All of the above files compressed together</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<h3>UDS</h3>
+							<div class="table-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<th>File</th>
+											<th>Description</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td><a href="./data-release/uds/spheroid.html">morpheus_UDS_spheroid.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>spheroid</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/disk.html">morpheus_UDS_disk.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>disk</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/irregular.html">morpheus_UDS_irregular.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>irregular</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/ps-compact.html">morpheus_UDS_ps_compact.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>point source/compact</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/background.html">morpheus_UDS_background.v1.0.fits</a></td>
+											<td>The pixel-level classifications for the <em>background</em> class</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/mask.html">morpheus_UDS_mask.v1.0.fits</a></td>
+											<td>Binary pixel map indicating classified pixels in the survey</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/segmap.html">morpheus_UDS_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/3dhst-segmap.html">morpheus_UDS_3dhst_segmap.v1.0.fits</a></td>
+											<td>Segmentation map generated using Morpheus and the 3DHST source locations</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/value-added-catalog.html">morpheus_UDS_3dhst_catalog.v1.0.csv</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (CSV)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/value-added-catalog-mrt.html">morpheus_UDS_3dhst_catalog.v1.0.txt</a></td>
+											<td>Morphological classifications for objects in the 3DHST Survey (Machine Readable Table)</td>
+										</tr>
+										<tr>
+											<td><a href="./data-release/uds/all.html">morpheus_UDS_all.v1.0.tar.gz</a></td>
+											<td>All of the above files compressed together</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
 						</div>
 					</section>
 
