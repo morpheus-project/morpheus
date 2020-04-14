@@ -4,6 +4,7 @@ class HParams(dict):
     Example:
     m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
     """
+
     def __init__(self, *args, **kwargs):
         super(HParams, self).__init__(*args, **kwargs)
         for arg in args:

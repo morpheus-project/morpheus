@@ -75,10 +75,7 @@ class Morpheus(morpheus.core.unet.Model):
     """
 
     def __init__(
-        self,
-        hparams: HParams,
-        dataset: tf.data.Dataset,
-        data_format: str,
+        self, hparams: HParams, dataset: tf.data.Dataset, data_format: str,
     ):
         """Inits Morpheus with hparams, dataset, data_format."""
 

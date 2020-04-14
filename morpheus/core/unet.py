@@ -51,10 +51,7 @@ class Model(morpheus.core.base_model.Model):
     """
 
     def __init__(
-        self,
-        hparams: HParams,
-        dataset: tf.data.Dataset,
-        data_format="channels_last",
+        self, hparams: HParams, dataset: tf.data.Dataset, data_format="channels_last",
     ):
         """Inits Model with hparams, dataset, and data_format"""
 
