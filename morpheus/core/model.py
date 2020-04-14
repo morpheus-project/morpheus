@@ -26,15 +26,16 @@ import json
 import os
 from typing import List
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 import morpheus.core.unet
+from morpheus.core.hparams import HParams
 
 
 class Morpheus(morpheus.core.unet.Model):
     """The main class for the Morpheus model.
 
-    This class takes a TensorFlow HParams object as an argument and it should
+    This class takes a HParams object as an argument and it should
     contain the following properties:
 
     Note if you are using pretrained weights for inference only you need
@@ -65,7 +66,7 @@ class Morpheus(morpheus.core.unet.Model):
         * dropout_rate (float): the percentage of neurons to drop [0.0, 1.0]
 
     Args:
-        hparams (tf.contrib.training.HParams): Model Hyperparameters
+        hparams (morpheus.core.hparams.HParams): Model Hyperparameters
         dataset (tf.data.Dataset): dataset to use for training
         data_format: channels_first or channels_last
 
@@ -74,10 +75,7 @@ class Morpheus(morpheus.core.unet.Model):
     """
 
     def __init__(
-        self,
-        hparams: tf.contrib.training.HParams,
-        dataset: tf.data.Dataset,
-        data_format: str,
+        self, hparams: HParams, dataset: tf.data.Dataset, data_format: str,
     ):
         """Inits Morpheus with hparams, dataset, data_format."""
 
@@ -301,16 +299,16 @@ class Morpheus(morpheus.core.unet.Model):
         return MockDataset(5)
 
     @staticmethod
-    def inference_hparams() -> tf.contrib.training.HParams:
+    def inference_hparams() -> HParams:
         """Generates a mockdataset for inference.
 
         Returns:
-            a tf.contrib.training.HParams object with the settings for inference
+            a morpheus.core.hparams.HParams object with the settings for inference
         """
         config_path = os.path.join(os.path.dirname(__file__), "model_config.json")
 
         with open(config_path, "r") as f:
-            return tf.contrib.training.HParams(**json.load(f))
+            return HParams(**json.load(f))
 
     @staticmethod
     def get_weights_dir() -> str:
