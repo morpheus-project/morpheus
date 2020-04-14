@@ -34,7 +34,7 @@ class Model(morpheus.core.base_model.Model):
     """Based on U-Net (https://arxiv.org/abs/1505.04597).
 
     Args:
-        hparams (tf.contrib.training.HParams): Hyperparamters to use
+        hparams (morpheus.core.hparams.HParams): Hyperparamters to use
         dataset (tf.data.Dataset): dataset to use for training
         data_format (str): channels_first or channels_last
 
