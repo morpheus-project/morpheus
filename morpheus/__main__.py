@@ -26,7 +26,6 @@ import argparse
 
 from morpheus.classifier import Classifier
 
-
 def _valid_file(value):
     if os.path.isfile(value) and value.endswith((".fits", ".FITS")):
         return value

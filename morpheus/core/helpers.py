@@ -29,7 +29,7 @@ from typing import Iterable
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from colorama import init, Fore
 from astropy.io import fits

@@ -29,6 +29,7 @@ import tensorflow as tf
 
 import morpheus.core.base_model as base_model
 import morpheus.core.unet as unet
+from morpheus.core.hparams import HParams
 
 
 class TestAssistant:
@@ -60,7 +61,7 @@ class TestAssistant:
 
         num_filters = [1 for _ in range(num_contractions)]
 
-        hparams = tf.contrib.training.HParams(
+        hparams = HParams(
             inference=inference,
             num_epochs=1,
             batch_norm=batch_norm,

@@ -21,9 +21,10 @@
 # ==============================================================================
 """Implements variations of the U-Net architecture."""
 
-import tensorflow as tf
-import morpheus.core.base_model
+import tensorflow.compat.v1 as tf
 
+import morpheus.core.base_model
+from morpheus.core.hparams import HParams
 
 LAYERS = tf.layers
 VarInit = tf.variance_scaling_initializer
@@ -51,7 +52,7 @@ class Model(morpheus.core.base_model.Model):
 
     def __init__(
         self,
-        hparams: tf.contrib.training.HParams,
+        hparams: HParams,
         dataset: tf.data.Dataset,
         data_format="channels_last",
     ):
