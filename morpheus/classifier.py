@@ -28,7 +28,7 @@ from typing import Iterable, List, Tuple, Callable, Dict, Union
 
 import imageio
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from astropy.io import fits
 from matplotlib.colors import hsv_to_rgb
 from scipy import ndimage as ndi
@@ -37,6 +37,8 @@ from skimage.filters import sobel
 from skimage.measure import regionprops
 from skimage.morphology import watershed
 from tqdm import tqdm
+
+tf.disable_eager_execution()
 
 import morpheus.core.helpers as helpers
 import morpheus.core.model as model
