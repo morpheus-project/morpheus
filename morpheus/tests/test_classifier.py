@@ -104,38 +104,42 @@ class TestClassifier:
             Classifier._variables_not_none(["good", "bad"], [1, None])
 
     @staticmethod
-    def test_colorize_rank_vote_output():
-        """Test colorize_rank_vote_output."""
+    def test_validate_parallel_params_raises_cpus_gpus():
+        """Test _validate_parallel_params.
 
-        data = dh.get_expected_morpheus_output()
-        expected_color = dh.get_expected_colorized_pngs()["no_hidden"]
+        Throws ValueError for passing values for both cpus an gpus.
+        """
+        gpus = [0]
+        cpus = 0
 
-        actual_color = Classifier.colorize_rank_vote_output(
-            data, hide_unclassified=False
-        )
-
-        actual_color = (actual_color * 255).astype(np.uint8)
-
-        np.testing.assert_array_almost_equal(expected_color, actual_color)
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(gpus=gpus, cpus=cpus)
 
     @staticmethod
-    def test_colorize_rank_vote_output_hidden():
-        """Test colorize_rank_vote_output with hiding."""
+    def test_validate_parallel_params_raises_single_gpu():
+        """Test _validate_parallel_params.
 
-        data = dh.get_expected_morpheus_output()
-        expected_color = dh.get_expected_colorized_pngs()["hidden"]
+        Throws ValueError for passing a single gpu.
+        """
+        gpus = [0]
 
-        actual_color = Classifier.colorize_rank_vote_output(
-            data, hide_unclassified=True
-        )
-
-        actual_color = (actual_color * 255).astype(np.uint8)
-
-        np.testing.assert_array_almost_equal(expected_color, actual_color)
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(gpus=gpus)
 
     @staticmethod
-    def test_make_segmap():
-        """Test make_segmap method."""
+    def test_validate_parallel_params_raises_single_cpu():
+        """Test _validate_parallel_params.
+
+        Throws ValueError for passing a single gpu.
+        """
+        cpus = 1
+
+        with pytest.raises(ValueError):
+            Classifier._validate_parallel_params(cpus=cpus)
+
+    @staticmethod
+    def test_segmap_from_classified():
+        """Test the segmap_from_classified method."""
 
         data = dh.get_expected_morpheus_output()
         h, _, _, _ = example.get_sample()
@@ -144,6 +148,83 @@ class TestClassifier:
 
         expected_segmap = dh.get_expected_segmap()["segmap"]
 
-        actual_segmap = Classifier.make_segmap(data, h, mask=mask)
+        actual_segmap = Classifier.segmap_from_classified(data, h, mask=mask)
 
         np.testing.assert_array_equal(expected_segmap, actual_segmap)
+
+    @staticmethod
+    def test_catalog_from_classified():
+        """Test the catalog_from_classified method."""
+
+        classified = dh.get_expected_morpheus_output()
+        h, _, _, _ = example.get_sample()
+        segmap = dh.get_expected_segmap()["segmap"]
+
+        expected_catalog = dh.get_expected_catalog()["catalog"]
+
+        actual_catalog = Classifier.catalog_from_classified(classified, h, segmap)
+
+        assert expected_catalog == actual_catalog
+
+    @staticmethod
+    def test_colorize_classified():
+        """Test colorize_classified."""
+
+        data = dh.get_expected_morpheus_output()
+        expected_color = dh.get_expected_colorized_pngs()["no_hidden"]
+
+        actual_color = Classifier.colorize_classified(data, hide_unclassified=False)
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_colorize_classified_hidden():
+        """Test colorize_classified with hidden."""
+
+        classified = dh.get_expected_morpheus_output()
+        expected_color = dh.get_expected_colorized_pngs()["hidden"]
+
+        actual_color = Classifier.colorize_classified(
+            classified, hide_unclassified=True
+        )
+
+        actual_color = (actual_color * 255).astype(np.uint8)
+
+        np.testing.assert_array_almost_equal(expected_color, actual_color)
+
+    @staticmethod
+    def test_valid_input_types_is_str_ndarray():
+        """Test _valid_input_types_is_str."""
+
+        h, j, v, z = [np.zeros([10]) for _ in range(4)]
+
+        assert not Classifier._valid_input_types_is_str(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_is_str_str():
+        """Test _valid_input_types_is_str."""
+
+        h, j, v, z = ["" for _ in range(4)]
+
+        assert Classifier._valid_input_types_is_str(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_is_str_throws_mixed():
+        """Test _valid_input_types_is_str."""
+
+        h, j = ["" for _ in range(2)]
+        v, z = [np.zeros([10]) for _ in range(2)]
+
+        with pytest.raises(ValueError):
+            Classifier._valid_input_types_is_str(h, j, v, z)
+
+    @staticmethod
+    def test_valid_input_types_is_str_throws_wrong_type():
+        """Test _valid_input_types_is_str."""
+
+        h, j, v, z = [1 for _ in range(4)]
+
+        with pytest.raises(ValueError):
+            Classifier._valid_input_types_is_str(h, j, v, z)

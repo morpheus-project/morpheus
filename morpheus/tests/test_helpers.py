@@ -285,7 +285,7 @@ class TestFitsHelper:
         for f in expected_file_names:
             arr = fits.getdata(f)
             assert arr.shape == shape
-            assert np.issubdtype(np.int16, arr.dtype)
+            assert np.issubdtype(np.float32, arr.dtype)
             os.remove(f)
 
     @staticmethod
@@ -480,7 +480,7 @@ class TestLabelHelper:
         """Test the make_rank_vote_arrays method."""
 
         expected_shape = (100, 100)
-        expected_dtype = np.int16
+        expected_dtype = np.float32
         expected_keys = LabelHelper.MORPHOLOGIES
 
         outs = LabelHelper.make_rank_vote_arrays(expected_shape)
@@ -502,3 +502,62 @@ class TestLabelHelper:
         for k in expected_keys:
             assert expected_shape == outs[k].shape
             assert np.issubdtype(expected_dtype, outs[k].dtype)
+
+    @staticmethod
+    def test_update_ns():
+        """test update_ns"""
+
+        ns = {"n": np.zeros([41, 41], dtype=np.int32)}
+        batch_idxs = [(0, 0), (0, 1), (1, 0)]
+
+        expected_ns = np.zeros([41, 41], dtype=np.int32)
+
+        # ones
+        expected_ns[5, 5] = 1
+        expected_ns[5:35, -6] = 1
+        expected_ns[-6, 5:-6] = 1
+
+        # twos
+        expected_ns[6:-6, 5] = 2
+        expected_ns[5, 6:-6] = 2
+
+        # threes
+        expected_ns[6:-6, 6:-6] = 3
+
+        LabelHelper.update_ns(ns, batch_idxs)
+
+        np.testing.assert_array_equal(expected_ns, ns["n"])
+
+    @staticmethod
+    def test_update_mean_var():
+        """test update_mean_var."""
+        labels = [np.ones([40, 40, 5]) * i for i in range(1, 4)]
+
+        data = dict()
+
+        for m in LabelHelper.MORPHOLOGIES:
+            data[f"{m}_mean"] = np.zeros([40, 43], dtype=np.float32)
+            data[f"{m}_var"] = np.zeros([40, 43], dtype=np.float32)
+        data["n"] = np.zeros([40, 43], dtype=np.int32)
+
+        batch_idxs = [(0, 0), (0, 1), (0, 2)]
+
+        for idx, lbl in zip(batch_idxs, labels):
+            LabelHelper.update_mean_var(data, [lbl], [idx])
+
+        expected_mean = np.zeros([40, 43], dtype=np.float32)
+        expected_mean[5:35, 5] = 1
+        expected_mean[5:35, 6] = 1.5
+        expected_mean[5:35, 7:35] = 2
+        expected_mean[5:35, 35] = 2.5
+        expected_mean[5:35, 36] = 3
+
+        expected_var = np.zeros([40, 43], dtype=np.float32)
+        expected_var[5:35, 6] = 0.25
+        expected_var[5:35, 7] = 0.666_666
+        expected_var[5:35, 8:35] = 2
+        expected_var[5:35, 35] = 0.5
+
+        for m in LabelHelper.MORPHOLOGIES:
+            np.testing.assert_array_almost_equal(expected_mean, data[f"{m}_mean"])
+            np.testing.assert_array_almost_equal(expected_var, data[f"{m}_var"])

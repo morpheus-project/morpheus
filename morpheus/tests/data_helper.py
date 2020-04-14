@@ -49,24 +49,50 @@ def get_expected_segmap():
     return {"segmap": get_fits(segmap)}
 
 
-def get_expected_morpheus_output():
+def get_expected_morpheus_output(out_type="rank_vote"):
     """Gets the expected morpheus outputs for testing."""
 
-    spheroid = "1nlGqibesE1LnEEif0oj-RO8xR4qNAFnP"
-    disk = "1btsoZZJu9qWkVn0rzIK9emgdMe6mMcHS"
-    irregular = "1qtXphVp7VflFBDWFjn6AJdvI1j3sN4KR"
-    point_source = "16bFNlZvD_EmAMSpCU-DZ_Shq3FMpXgp3"
-    background = "1xp6NC00T3JykdOwz0c8EFeJG0vdsThSW"
-    n = "1I5IasDPGyDmMaXN4NCwLh27X_OuxYiPv"
+    rank_vote_spheroid = "1nlGqibesE1LnEEif0oj-RO8xR4qNAFnP"
+    rank_vote_disk = "1btsoZZJu9qWkVn0rzIK9emgdMe6mMcHS"
+    rank_vote_irregular = "1qtXphVp7VflFBDWFjn6AJdvI1j3sN4KR"
+    rank_vote_point_source = "16bFNlZvD_EmAMSpCU-DZ_Shq3FMpXgp3"
+    rank_vote_background = "1xp6NC00T3JykdOwz0c8EFeJG0vdsThSW"
+    rank_vote_n = "1I5IasDPGyDmMaXN4NCwLh27X_OuxYiPv"
 
-    return {
-        "spheroid": get_fits(spheroid),
-        "disk": get_fits(disk),
-        "irregular": get_fits(irregular),
-        "point_source": get_fits(point_source),
-        "background": get_fits(background),
-        "n": get_fits(n),
-    }
+    mean_spheroid = "1kXpXJTwHyAcXkC7LTLi0J8kYtViLt6eo"
+    var_spheroid = "1WJ9sphwkUM-fG2XOLjDbK6cQ7akjdP_N"
+    mean_disk = "1c9Sbp5IeVIosNPVIbigKfFK9gHpCR7QW"
+    var_disk = "16MW0-w22827qGeHchUQd38C3FQD7WUmx"
+    mean_irregular = "1RRZ9pysoJRBA_SBkfxIU625Wydo740I-"
+    var_irregular = "1smaHNzdPv-FzKAn0LhalakSi5e56hx75"
+    mean_point_source = "1PQUy7hNziP0koQDOR9BHk-lhz0WbqA6s"
+    var_point_source = "1vdrmyrT0Io2XvhL3FCpKOHSWzQ7vlb9U"
+    mean_background = "18Vi6IQHyWbd5v9BBk9Ak34V5XHQt4KtI"
+    var_background = "1lCfccgqS9kbynfZBCkEl-ED7mMUtGhN5"
+
+    if out_type == "rank_vote":
+        return {
+            "spheroid": get_fits(rank_vote_spheroid),
+            "disk": get_fits(rank_vote_disk),
+            "irregular": get_fits(rank_vote_irregular),
+            "point_source": get_fits(rank_vote_point_source),
+            "background": get_fits(rank_vote_background),
+            "n": get_fits(rank_vote_n),
+        }
+    else:  # mean_var
+        return {
+            "spheroid_mean": get_fits(mean_spheroid),
+            "spheroid_var": get_fits(var_spheroid),
+            "disk_mean": get_fits(mean_disk),
+            "disk_var": get_fits(var_disk),
+            "irregular_mean": get_fits(mean_irregular),
+            "irregular_var": get_fits(var_irregular),
+            "point_source_mean": get_fits(mean_point_source),
+            "point_source_var": get_fits(var_point_source),
+            "background_mean": get_fits(mean_background),
+            "background_var": get_fits(var_background),
+            "n": get_fits(rank_vote_n),
+        }
 
 
 def get_expected_catalog():

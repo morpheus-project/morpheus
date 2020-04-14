@@ -20,11 +20,10 @@ URL = "https://github.com/morpheus-project/morpheus"
 EMAIL = "rhausen@ucsc.edu"
 AUTHOR = "Ryan Hausen & Brant Robertson"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = "0.2.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "numpy<1.16", # remove retriction once skimage >= 14.2
+    "numpy",
     "colorama",
     "astropy",
     "tqdm",
@@ -53,6 +52,9 @@ try:
         long_description = "\n" + f.read()
 except FileNotFoundError:
     long_description = DESCRIPTION
+
+with open("./morpheus/__version__.py", "r") as f:
+    version = f.readlines()[0].strip().replace('"', "")
 
 
 class UploadCommand(Command):
@@ -86,7 +88,7 @@ class UploadCommand(Command):
         os.system("twine upload dist/*")
 
         self.status("Pushing git tags…")
-        os.system("git tag v{0}".format(VERSION))
+        os.system("git tag v{0}".format(version))
         os.system("git push --tags")
 
         sys.exit()
@@ -95,7 +97,7 @@ class UploadCommand(Command):
 # Where the magic happens:
 setup(
     name=NAME,
-    version=VERSION,
+    version=version,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/x-rst",
@@ -106,9 +108,7 @@ setup(
     packages=find_packages(exclude=("morpheus.tests",)),
     # If your package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
+    entry_points={"console_scripts": ["morpheus=morpheus.__main__:main"]},
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,

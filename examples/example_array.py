@@ -25,4 +25,4 @@ from morpheus.classifier import Classifier
 from morpheus.data import example
 
 h, j, v, z = example.get_sample()
-morphs = Classifier.classify_arrays(h=h, j=j, v=v, z=z)
+morphs = Classifier.classify(h=h, j=j, v=v, z=z)

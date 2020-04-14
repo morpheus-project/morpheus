@@ -19,7 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # ==============================================================================
-"""A base class for building neural network models in Tensorflow."""
+"""A base class for building neural network models in TensorFlow."""
 
 from types import FunctionType
 
@@ -33,7 +33,7 @@ class Model:
 
     Attributes:
         dataset (tf.data.Dataset): Dataset Object for training
-        is_training (bool): indicates whether or not the model is training
+        is_training (bool): indicates if the model is training
         data_format (str): 'channels_first' or 'channels_last'
 
     Required methods to override:
@@ -60,7 +60,7 @@ class Model:
         self._graph = None
 
     def model_fn(self, inputs: tf.Tensor, is_training: bool) -> FunctionType:
-        """Function that defines model. Needs to be Overidden!
+        """Function that defines model. Needs to be Overridden!
 
         Args:
             inputs (tf.Tensor): the input tensor

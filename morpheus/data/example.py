@@ -30,10 +30,10 @@ import numpy as np
 def get_sample(out_dir: str = None) -> List[np.ndarray]:
     """Retrieves a sample of CANDELS data as an example for classification.
 
-    Sample image is taken from CANDELS 1.0 release. The object in the center
+    Sample image is taken from the CANDELS 1.0 release. The object in the center
     is GDS_deep2_3622 from Karaltepe et. al (2015).
 
-    Data can be manually downlaoded from:
+    Data can be manually downloaded from:
 
     https://drive.google.com/uc?export=download&id=1fFGUVOVMOGLG4ptgAZv0T9Woimr653kn
 

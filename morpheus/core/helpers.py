@@ -38,7 +38,7 @@ init(autoreset=True)
 
 
 class TFLogger:
-    """A helper class to color the logging text in Tensorflow."""
+    """A helper class to color the logging text in TensorFlow."""
 
     RED = lambda s: Fore.RED + str(s) + Fore.RESET
     BLUE = lambda s: Fore.BLUE + str(s) + Fore.RESET
@@ -300,7 +300,7 @@ class FitsHelper:
             file_names.append(f)
             data_keys.append(morph)
 
-            FitsHelper.create_file(f, shape, np.int16)
+            FitsHelper.create_file(f, shape, np.float32)
 
         hduls, arrays = FitsHelper.get_files(file_names, mode="update")
 
@@ -350,14 +350,14 @@ class LabelHelper:
 
     @staticmethod
     def index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
-        """Creates a generator that returns indicies to iterate over a 2d array.
+        """Creates a generator that returns indices to iterate over a 2d array.
 
         Args:
-            dim0 (int): The upper limit to iterate upto for the first dimension
-            dim1 (int): The upper limit to iterate upto for the second dimension
+            dim0 (int): The upper limit to iterate up to for the first dimension
+            dim1 (int): The upper limit to iterate up to for the second dimension
 
         Returns:
-            A generator that yields indicies to iterate over a 2d array with
+            A generator that yields indices to iterate over a 2d array with
             shape [dim0, dim1]
         """
         for y in range(dim0):
@@ -366,18 +366,18 @@ class LabelHelper:
 
     @staticmethod
     def windowed_index_generator(dim0: int, dim1: int) -> Iterable[Tuple[int, int]]:
-        """Creates a generator that returns window limited indicies over a 2d array.
+        """Creates a generator that returns window limited indices over a 2d array.
 
-        THe generator returned by this method will yield the indicies for the use
+        THe generator returned by this method will yield the indices for the use
         of a sliding window of size `N_UPDATE_MASK.shape` over a 2d array with
         the size `(dim0, dim1)`.
 
         Args:
-            dim0 (int): The upper limit to iterate upto for the first dimension
-            dim1 (int): The upper limit to iterate upto for the second dimension
+            dim0 (int): The upper limit to iterate up to for the first dimension
+            dim1 (int): The upper limit to iterate up to for the second dimension
 
         Returns:
-            A generator that yields indicies to iterate over a 2d array with
+            A generator that yields indices to iterate over a 2d array with
             shape [dim0, dim1]
         """
 
@@ -397,7 +397,7 @@ class LabelHelper:
             x (int): the current x index
 
         Returns:
-            A list of relative indicies that won't be updated again.
+            A list of relative indices that won't be updated again.
         """
         final_map = []
 
@@ -429,19 +429,20 @@ class LabelHelper:
         http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf, eq. 4
 
         Args:
-            n (np.ndarray): a 2d array containg the number of terms in mean so
+            n (np.ndarray): a 2d array containing the number of terms in mean so
                             far,
             prev_mean (np.ndarray): the current calculated mean.
             x_n (np.ndarray): the new values to add to the mean
             update_mask (np.ndarray): a 2d boolean array indicating which
-                                      indicies in the array should be updated.
+                                      indices in the array should be updated.
 
         Returns:
             An array with the same shape as the curr_mean with the newly
             calculated mean values.
         """
-        n[n == 0] = 1
-        return curr_mean + ((x_n - curr_mean) / n * update_mask)
+        _n = n.copy()
+        _n[_n == 0] = 1
+        return curr_mean + ((x_n - curr_mean) / _n * update_mask)
 
     @staticmethod
     def iterative_variance(
@@ -479,7 +480,7 @@ class LabelHelper:
     ):
         """The second of two methods used to calculate the variance online.
 
-        This method calcaulates the final variance value using equation 25 from
+        This method calculates the final variance value using equation 25 from
 
         http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
 
@@ -488,12 +489,12 @@ class LabelHelper:
         Args:
             n (np.ndarray): the current number of values included in the calculation
             curr_sn (np.ndarray): the current $S_n$ values
-            final_map List[(y, x)]: a list of indicies to calculate the final
+            final_map List[(y, x)]: a list of indices to calculate the final
                                     variance for
 
         Returns:
             A np.ndarray with the current $S_n$ values and variance values for
-            all indicies in final_map
+            all indices in final_map
         """
         final_n = np.ones_like(n)
         for y, x in final_map:
@@ -535,7 +536,7 @@ class LabelHelper:
 
         Args:
             data (dict): a dictionary of numpy arrays containing the data
-            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            batch_idx (List[Tuple[int, int]]): a list of indices to update
             inc (int): the number to increment `n` by. Default=1
 
         Returns
@@ -560,7 +561,7 @@ class LabelHelper:
         Args:
             data (dict): a dict of numpy arrays containing the data
             labels (np.ndarray): the new output from the model
-            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            batch_idx (List[Tuple[int, int]]): a list of indices to update
 
         Returns:
             None
@@ -570,6 +571,7 @@ class LabelHelper:
         total_shape = data["n"].shape
         for i, l in enumerate(labels):
             y, x = batch_idx[i]
+            LabelHelper.update_ns(data, [(y, x)])
             ys = slice(y, y + window_y)
             xs = slice(x, x + window_x)
 
@@ -604,7 +606,7 @@ class LabelHelper:
         Args:
             data (dict): data (dict): a dict of numpy arrays containing the data
             labels (np.ndarray): the new output from the model
-            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            batch_idx (List[Tuple[int, int]]): a list of indices to update
 
         Returns:
             None
@@ -635,7 +637,7 @@ class LabelHelper:
         Args:
             data (dict): data (dict): a dict of numpy arrays containing the data
             labels (np.ndarray): the new output from the model
-            batch_idx (List[Tuple[int, int]]): a list of indicies to update
+            batch_idx (List[Tuple[int, int]]): a list of indices to update
             out_type (str): indicates which type of output to update must be
                             one of ['mean_var', 'rank_vote', 'both']
 
@@ -643,11 +645,13 @@ class LabelHelper:
             None
         """
 
-        LabelHelper.update_ns(data, batch_idx)
-
-        if out_type in ["both", "mean_var"]:
+        if out_type == "mean_var":
             LabelHelper.update_mean_var(data, labels, batch_idx)
-        if out_type in ["both", "rank_vote"]:
+        elif out_type == "rank_vote":
+            LabelHelper.update_ns(data, batch_idx)
+            LabelHelper.update_rank_vote(data, labels, batch_idx)
+        else:
+            LabelHelper.update_mean_var(data, labels, batch_idx)
             LabelHelper.update_rank_vote(data, labels, batch_idx)
 
     @staticmethod
@@ -685,13 +689,13 @@ class LabelHelper:
         arrays = {}
 
         for morph in LabelHelper.MORPHOLOGIES:
-            arrays[morph] = np.zeros(shape, dtype=np.int16)
+            arrays[morph] = np.zeros(shape, dtype=np.float32)
 
         return arrays
 
     @staticmethod
     def make_n_array(shape: Tuple[int, int]) -> dict:
-        """Create output array for use in in-memory classification.
+        """Create an output array for use in in-memory classification.
 
         Args:
             shape (Tuple[int]): The 2d (width, height) for to create the arrays
@@ -709,7 +713,7 @@ class LabelHelper:
         Args:
             data (dict): a dict of numpy arrays containing the data
 
-        TODO: Refactor to accomodate large files
+        TODO: Refactor to accommodate large files
 
         Returns:
             None
@@ -720,4 +724,4 @@ class LabelHelper:
         for morph in LabelHelper.MORPHOLOGIES:
             m = data[morph].copy()
             m = np.divide(m, n, out=np.zeros_like(m, dtype=np.float32), where=n != 0)
-            data[morph] = m
+            data[morph][:, :] = m[:, :]
