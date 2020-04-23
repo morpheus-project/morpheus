@@ -250,6 +250,7 @@ class Classifier:
     def segmap_from_classified(
         classified: dict,
         flux: np.ndarray,
+        bkg_src_threshold: float = 0.0,
         out_dir: str = None,
         min_distance: int = 20,
         mask: np.ndarray = None,
@@ -257,55 +258,16 @@ class Classifier:
     ) -> np.ndarray:
         """Generate a segmentation map from the classification output.
 
-            Segmentation maps are generated using the background classification
-            in ``data``. The segmentation maps are generated using the
-            `watershed algorithm <https://en.wikipedia.org/wiki/Watershed_(image_processing)>`_
-            in conjunction with heuristics for simple deblending. The
-            steps to generate the segmentation map are as follows:
-
-            **Inputs**: Background pixel classifications *b* and H band flux *h*
-
-            **Outputs**: A segmentation map *sm*
-
-            **Algorithm**:
-
-            1. Initial Segmentation
-
-            :math:`psf_r` = The radius of the PSF for the instrument used in H band
-
-            *m* = a zero matrix, same size as *b*
-
-            FOR :math:`m_{ij}` in *m*
-
-                IF :math:`b_{ij}==1` THEN :math:`m_{ij}=1`
-
-                ELSE IF :math:`b_{ij}==0` THEN :math:`m_{ij}=2`
-
-            *s* = `sobel <https://en.wikipedia.org/wiki/Sobel_operator>`_ (*b*)
-
-            *sm* = apply watershed on *s* with markers *m*
-
-            2. Simple Deblending
-
-            FOR EACH contiguous set of source pixels *p* in *sm* and corresponding flux set *f* in *h*
-
-                Assign a unique id to *p*
-
-                *mx* = :math:`\\max(f)`
-
-                *pm* = pixels in *p* that are at least :math:`\\frac{mx}{10}` AND at least a :math:`psf_r` apart.
-
-                IF there are more than 2 pixels *pm*
-
-                    *pwm* = apply watershed on :math:`-1 * f` with markers *pm*
-
-                    Assign unique ids to the contiguous sets of pixels in *pwm*
-
-            RETURN *sm*
+        For more information about the segmentation process, see:
+        https://arxiv.org/abs/1906.11248
 
         Args:
             data (dict): A dictionary containing the output from morpheus.
             flux (np.ndarray): The flux to use when making the segmap
+            bkg_src_threshold (float): The max value that a background
+                                       classification pixel can take and be
+                                       considered a source. The default is 0.
+                                       Should be between [0,1]
             out_dir (str): A path to save the segmap in.
             min_distance (int): The minimum distance for deblending
             mask (np.ndarry): A boolean mask indicating which pixels
@@ -316,6 +278,14 @@ class Classifier:
         Returns:
             A np.ndarray segmentation map
         """
+        if bkg_src_threshold < 0 or bkg_src_threshold >= 1:
+            err_msg = [
+                "Invalid value for `bkg_src_threshold`, use a value in the ",
+                "range [0, 1)",
+            ]
+
+            raise ValueError(err_msg)
+
         bkg = classified["background"]
         markers = np.zeros_like(flux, dtype=np.uint8)
 
@@ -324,7 +294,7 @@ class Classifier:
             mask = classified["n"] > 0
 
         is_bkg = np.logical_and(bkg == 1, mask)
-        is_src = np.logical_and(bkg == 0, mask)
+        is_src = np.logical_and(bkg <= bkg_src_threshold, mask)
 
         markers[is_bkg] = 1
         markers[is_src] = 2
