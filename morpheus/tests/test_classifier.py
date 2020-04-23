@@ -153,6 +153,18 @@ class TestClassifier:
         np.testing.assert_array_equal(expected_segmap, actual_segmap)
 
     @staticmethod
+    def test_segmap_from_classified_fails():
+        """Test the segmap_from_classified method."""
+
+        data = dh.get_expected_morpheus_output()
+        h, _, _, _ = example.get_sample()
+        mask = np.zeros_like(h, dtype=np.int)
+        mask[5:-5, 5:-5] = 1
+
+        with pytest.raises(ValueError):
+            Classifier.segmap_from_classified(data, h, mask=mask, bkg_src_threshold=1.0)
+
+    @staticmethod
     def test_catalog_from_classified():
         """Test the catalog_from_classified method."""
 
