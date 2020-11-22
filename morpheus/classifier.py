@@ -130,6 +130,8 @@ class Classifier:
                 batch_size=batch_size,
             )
         else:
+            if out_dir is None:
+                out_dir = "."
             Classifier._build_parallel_classification_structure(
                 [h, j, v, z], workers, batch_size, out_dir, out_type
             )
