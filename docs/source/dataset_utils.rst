@@ -4,7 +4,6 @@ dataset_utils.py
 
 Summary
 ------------
-**Path:** :file:`/data/groups/comp-astro/morpheus/dataset_utils.py`
 
 This file hosts a few helper functions not included within the morpheus class that are used in other files. This includes a segmentation map creating function for the five morphological classifications, a function to isolate the target galaxy in an image, a function to create stamps, another function to mask out galaxy companions, and a function to plot segmentation maps. 
 
