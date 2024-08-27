@@ -286,7 +286,4 @@ Try it out on `Google Colab <https://colab.research.google.com/github/morpheus-p
 Documentation
 =============
 
-
-See `2024 Big Morpheus Documentation in progress <https://morpheus-astro.readthedocs.io/en/latest/source/dataset_utils.html>`_!
-
 https://morpheus-astro.readthedocs.io/
