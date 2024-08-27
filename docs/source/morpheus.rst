@@ -8,8 +8,8 @@ Subpackages
 
     morpheus.core
     morpheus.data
-    dataset_utils
-
+    morpheus.features
+    
 Submodules
 ----------
 

@@ -11,6 +11,15 @@ morpheus.data.example module
     :members:
     :undoc-members:
     :show-inheritance:
+    
+
+morpheus.data.creating_datasets module
+--------------------------------------
+
+.. automodule:: morpheus.data.creating_datasets
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
 Module contents

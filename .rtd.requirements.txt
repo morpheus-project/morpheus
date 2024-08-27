@@ -1,1 +1,4 @@
 tensorflow
+scikit-image
+astropy
+pyvo
