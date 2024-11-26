@@ -35,7 +35,7 @@ from scipy import ndimage as ndi
 from skimage.feature import peak_local_max
 from skimage.filters import sobel
 from skimage.measure import regionprops
-from skimage.morphology import watershed
+from skimage.segmentation import watershed
 from tqdm import tqdm
 
 tf.disable_eager_execution()
